@@ -32,11 +32,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # Headless MuJoCo rendering on the Colab VM (must be set before robosuite imports).
-# Default to OSMesa (CPU software GL): creating an EGL context on the GPU AFTER torch
-# has initialized CUDA segfaults on Colab. OSMesa never touches the GPU's GL, so it
-# can't conflict — and since rendering is tiny next to T4 inference, it's ~free.
-# Override with `MUJOCO_GL=egl python ...` on hardware where EGL is known-good.
-os.environ.setdefault("MUJOCO_GL", "osmesa")
+# Use EGL (GPU GL — known to render on this VM). The catch: creating an EGL context
+# AFTER torch inits CUDA segfaults on Colab, so prepare() primes the EGL context with
+# a warmup env BEFORE loading the model (see _warmup_render). If EGL still misbehaves,
+# fall back with `MUJOCO_GL=osmesa python ...` (CPU GL; slower, occasionally hangs).
+os.environ.setdefault("MUJOCO_GL", "egl")
 os.environ.setdefault("PYOPENGL_PLATFORM", os.environ["MUJOCO_GL"])
 
 import numpy as np
@@ -268,9 +268,34 @@ def _save_video(frames, path: Path, fps: int = 10):
 
 
 # --- orchestration ----------------------------------------------------------------
+# Keep the warmup env alive for the whole process so its EGL display stays primed.
+_WARMUP_ENV = None
+
+
+def _warmup_render(lb, cfg: EvalConfig):
+    """Initialize the MuJoCo EGL render context BEFORE the model inits CUDA.
+
+    Creating an EGL context on the GPU after CUDA is up segfaults on Colab; priming it
+    first makes later eglInitialize calls cached no-ops. No-op for non-EGL backends
+    (OSMesa is CPU GL and has no CUDA-ordering issue).
+    """
+    global _WARMUP_ENV
+    if os.environ.get("MUJOCO_GL") != "egl" or _WARMUP_ENV is not None:
+        return
+    try:
+        suite = lb["benchmark"].get_benchmark_dict()[cfg.task_suite_name]()
+        env, _ = make_libero_env(lb, suite.get_task(0))
+        env.reset()                      # forces the render context to come up
+        _WARMUP_ENV = env                # keep alive — do NOT close (keeps EGL primed)
+        print("[warmup] EGL render context initialized before CUDA", flush=True)
+    except Exception as e:  # noqa: BLE001 - warmup is best-effort
+        print(f"[warn] render warmup failed (continuing): {e}", flush=True)
+
+
 def prepare(cfg: EvalConfig):
     """Import LIBERO and load the model ONCE; reuse across all sweep levels."""
     lb = _import_libero()
+    _warmup_render(lb, cfg)              # MUST run before load_policy (CUDA init)
     model, processor, dtype = load_policy(cfg)
     return {"lb": lb, "model": model, "processor": processor, "dtype": dtype}
 
