@@ -246,24 +246,37 @@ design, rarely present in research robot stacks.
 
 ## Reproducing
 
+> **CLI note.** `colab exec` runs a *single* file's content on the kernel (it does
+> not ship sibling modules), doesn't forward argv, and defaults to a 30 s timeout —
+> all three break long, multi-file, parameterized runs. So we drive the VM from
+> `colab console` (a tmux shell — treat it like SSH), where the cloned project runs
+> as plain `python scripts/...` exactly as it does locally.
+
 ```bash
-# remote (Colab GPU VM), once:
-colab new --gpu A100 -n openvla-session
-colab exec -s openvla-session -f setup/install_remote.py
-colab exec -s openvla-session -f setup/verify.py
+# 0. provision a GPU VM (first call opens a browser to authenticate)
+colab new --gpu A100 -n openvla-session     # or --gpu L4 / --gpu T4 (+ --load_in_4bit below)
 
-# baseline + sweeps (priority order if GPU time is tight):
-colab exec -s openvla-session -f scripts/run_baseline.py    -- --task_suite libero_object --trials 20
-colab exec -s openvla-session -f scripts/run_full_sweep.py  -- --degradation latency --trials 10
-colab exec -s openvla-session -f scripts/run_full_sweep.py  -- --degradation noise   --trials 10
-colab exec -s openvla-session -f scripts/run_full_sweep.py  -- --degradation gap     --trials 10
-colab exec -s openvla-session -f scripts/run_full_sweep.py  -- --degradation resolution --trials 10
-colab exec -s openvla-session -f scripts/run_full_sweep.py  -- --profiles --trials 10
-colab download -s openvla-session results -o ./results
-colab stop -s openvla-session            # ALWAYS — sessions burn compute units
+# 1. drive the VM like SSH; everything here runs ON the VM
+colab console -s openvla-session
+#   --- on the VM: ---
+git clone -b project-2-openvla-robustness https://github.com/zoeyeballard/Andarna.git
+cd Andarna/openvla-robustness
+python setup/install_remote.py            # clones + installs OpenVLA & LIBERO (several min)
+python setup/verify.py                    # expect [VERIFY OK]
+python scripts/run_baseline.py    --task_suite libero_object --trials 20
+python scripts/run_full_sweep.py  --degradation latency    --trials 10   # priority order:
+python scripts/run_full_sweep.py  --degradation noise      --trials 10   # latency, noise,
+python scripts/run_full_sweep.py  --degradation gap        --trials 10   # gap, resolution,
+python scripts/run_full_sweep.py  --degradation resolution --trials 10
+python scripts/run_full_sweep.py  --profiles               --trials 10
+tar czf results.tgz results               # bundle for one-shot download
+exit                                      # leave the shell; the session stays alive
 
-# local (no GPU): figures + this report's tables
-python -m robustness.analysis --suite libero_object
+# 2. back on the local box: pull results, build figures, then ALWAYS stop the VM
+colab download -s openvla-session /content/Andarna/openvla-robustness/results.tgz ./results.tgz
+tar xzf results.tgz                        # -> results/
+python -m robustness.analysis --suite libero_object   # writes figures/ + fills the tables
+colab stop -s openvla-session              # idle A100 burns compute units
 ```
 
 Degradation mechanics and the analysis pipeline are unit-tested locally

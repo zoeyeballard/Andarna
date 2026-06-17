@@ -51,19 +51,21 @@ openvla-robustness/
 
 ## Workflow
 
+`colab exec` runs one file with a 30 s timeout and no argv forwarding, so the long
+multi-file runs are driven from a `colab console` tmux shell (SSH-style):
+
 ```bash
-# one-time: GPU session
-colab new --gpu A100 -n openvla-session
-colab exec -s openvla-session -f setup/install_remote.py
-colab exec -s openvla-session -f setup/verify.py
-
-# baseline + sweeps
-colab exec -s openvla-session -f scripts/run_baseline.py
-colab exec -s openvla-session -f scripts/run_full_sweep.py -- --degradation latency
-colab download -s openvla-session results/ -o ./results/
-
-# ALWAYS stop when idle — sessions burn compute units
-colab stop -s openvla-session
+colab new --gpu A100 -n openvla-session        # browser auth on first call
+colab console -s openvla-session               # -> shell on the VM:
+  git clone -b project-2-openvla-robustness https://github.com/zoeyeballard/Andarna.git
+  cd Andarna/openvla-robustness
+  python setup/install_remote.py && python setup/verify.py
+  python scripts/run_baseline.py   --task_suite libero_object --trials 20
+  python scripts/run_full_sweep.py --degradation latency --trials 10
+  tar czf results.tgz results        # then `exit`
+colab download -s openvla-session /content/Andarna/openvla-robustness/results.tgz ./results.tgz
+python -m robustness.analysis --suite libero_object     # local: figures + tables
+colab stop -s openvla-session                  # ALWAYS — idle sessions burn compute units
 ```
 
 ## Status
