@@ -115,7 +115,8 @@ def load_policy(cfg: EvalConfig):
     from the checkpoint's own norm_stats so we never guess the dataset key.
     """
     import torch
-    from transformers import AutoModelForVision2Seq, AutoProcessor
+    from transformers import (AutoModelForVision2Seq, AutoProcessor,
+                              BitsAndBytesConfig)
 
     flash = _gpu_supports_flash_attn()
     dtype = torch.bfloat16 if flash else torch.float16
@@ -129,10 +130,19 @@ def load_policy(cfg: EvalConfig):
         low_cpu_mem_usage=True,
         trust_remote_code=True,
     )
+    # Quantized models MUST be placed via device_map (modern transformers/accelerate
+    # forbid a post-hoc .to() on bnb models). Pin the whole model to GPU 0.
     if cfg.load_in_4bit:
-        kwargs["load_in_4bit"] = True
+        kwargs["device_map"] = {"": 0}
+        kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=dtype,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True,
+        )
     elif cfg.load_in_8bit:
-        kwargs["load_in_8bit"] = True
+        kwargs["device_map"] = {"": 0}
+        kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
 
     model = AutoModelForVision2Seq.from_pretrained(cfg.pretrained_checkpoint, **kwargs)
     if not (cfg.load_in_4bit or cfg.load_in_8bit):
