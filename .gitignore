@@ -19,3 +19,22 @@ outputs/*.txt
 # HF / torch caches (these live in ~/.cache anyway, but just in case)
 *.safetensors
 wandb/
+
+# .env files
+.env
+
+# prompts
+Claude.md
+
+# --- Project 2: openvla-robustness ---
+# Raw per-trial logs and rollout videos are large/regenerable — commit only the
+# aggregated summaries (summary.json / *.csv) and the figures.
+openvla-robustness/results/**/trials.jsonl
+openvla-robustness/results/**/rollout_*.mp4
+openvla-robustness/**/*.npy
+# HF model cache / checkpoints if they ever land in-tree
+openvla-robustness/**/checkpoints/
+openvla-robustness/**/*.bin
+adapter_tmp/
+# Local copy of the colab session log can get large
+openvla-robustness/session_log.ipynb

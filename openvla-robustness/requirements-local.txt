@@ -1,0 +1,9 @@
+# Local (CPU-only) dev deps: degradation module, analysis, plotting, tests.
+# The GPU stack (torch/transformers/openvla/LIBERO) is installed on the Colab VM by
+# setup/install_remote.py — NOT here.
+numpy>=1.24
+pillow>=10.0
+matplotlib>=3.7
+pandas>=2.0
+# The remote-execution CLI (auth is interactive — see README):
+google-colab-cli>=0.6.0
