@@ -30,7 +30,11 @@ PINNED_CORE = ["transformers==4.40.1", "tokenizers==0.19.1", "timm==0.9.10"]
 # Everything `prismatic` + the LIBERO eval path import at runtime, minus the
 # TF/RLDS/dlimp data stack which eval never touches.
 EVAL_DEPS = [
-    "accelerate", "bitsandbytes", "draccus", "einops", "huggingface_hub",
+    # accelerate is PINNED to transformers-4.40.1's era: accelerate 1.x calls
+    # model.to() on single-GPU dispatch, which bnb-quantized models reject, and the
+    # old transformers can't signal "quantized, skip .to()". 0.30.1 dispatches right.
+    "accelerate==0.30.1",
+    "bitsandbytes", "draccus", "einops", "huggingface_hub",
     "jsonlines", "peft", "sentencepiece", "protobuf", "rich",
     "imageio", "imageio-ffmpeg",
 ]
