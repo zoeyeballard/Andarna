@@ -8,20 +8,32 @@ failure so an orchestrating script can branch on it.
 """
 
 import importlib
+import os
 import sys
+
+# `experiments.*` lives at the OpenVLA repo root (not an installed package).
+OPENVLA_DIR = os.environ.get("OPENVLA_DIR", "/content/openvla")
+if os.path.isdir(OPENVLA_DIR) and OPENVLA_DIR not in sys.path:
+    sys.path.insert(0, OPENVLA_DIR)
 
 EXPECTED_TRANSFORMERS = "4.40.1"
 
-# (import path, friendly name). These are the imports the eval harness needs.
+# Imports the eval harness genuinely needs (failure => eval can't run).
 CRITICAL_IMPORTS = [
     ("torch", "PyTorch"),
     ("transformers", "transformers"),
     ("timm", "timm"),
-    ("flash_attn", "flash-attn"),
-    ("tensorflow_datasets", "tensorflow-datasets"),
-    ("dlimp", "dlimp"),
+    ("bitsandbytes", "bitsandbytes (4/8-bit)"),
     ("libero.libero", "LIBERO"),
     ("experiments.robot.openvla_utils", "openvla eval utils"),
+]
+
+# Nice-to-have but NOT needed for eval (flash-attn unsupported on T4; TF/dlimp are
+# only for the RLDS training pipeline). Missing => warn, don't fail.
+OPTIONAL_IMPORTS = [
+    ("flash_attn", "flash-attn (Ampere+ only)"),
+    ("tensorflow_datasets", "tensorflow-datasets (training only)"),
+    ("dlimp", "dlimp (training only)"),
 ]
 
 
@@ -56,7 +68,7 @@ def main():
         failures.append(f"transformers import failed: {e}")
 
     # --- critical imports ---
-    print("\nimports:")
+    print("\nrequired imports:")
     for mod, name in CRITICAL_IMPORTS:
         try:
             importlib.import_module(mod)
@@ -64,6 +76,14 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"  [FAIL] {name}: {e}")
             failures.append(f"import {mod}: {e}")
+
+    print("\noptional imports (fine to be missing for eval):")
+    for mod, name in OPTIONAL_IMPORTS:
+        try:
+            importlib.import_module(mod)
+            print(f"  [ok]   {name}")
+        except Exception:  # noqa: BLE001
+            print(f"  [--]   {name} not installed (ok)")
 
     print()
     if failures:

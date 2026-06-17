@@ -25,6 +25,10 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# Headless MuJoCo rendering on the Colab VM (must be set before robosuite imports).
+os.environ.setdefault("MUJOCO_GL", "egl")
+os.environ.setdefault("PYOPENGL_PLATFORM", "egl")
+
 import numpy as np
 
 # --- make this file runnable both as a module and as a bare `colab exec` script ---
@@ -116,11 +120,58 @@ def _import_openvla():
     )
 
 
+def _gpu_supports_flash_attn() -> bool:
+    """flash-attn 2.x needs Ampere+ (sm80). T4/V100 (Turing/Volta) do not qualify."""
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            return False
+        major, _ = torch.cuda.get_device_capability(0)
+        return major >= 8
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _load_vla_sdpa(cfg: EvalConfig):
+    """Direct load with SDPA attention + fp16 — the path that runs on a T4.
+
+    OpenVLA's get_vla() forces attn_implementation='flash_attention_2', which fails
+    on Turing. We load the same model class ourselves so model.predict_action (used
+    by get_action) still works, just with PyTorch's scaled-dot-product attention.
+    """
+    import torch
+    from transformers import AutoModelForVision2Seq
+
+    kwargs = dict(
+        attn_implementation="sdpa",
+        torch_dtype=torch.float16,   # T4 has no native bf16 compute
+        low_cpu_mem_usage=True,
+        trust_remote_code=True,
+    )
+    if cfg.load_in_4bit:
+        kwargs["load_in_4bit"] = True
+    elif cfg.load_in_8bit:
+        kwargs["load_in_8bit"] = True
+    model = AutoModelForVision2Seq.from_pretrained(cfg.pretrained_checkpoint, **kwargs)
+    if not (cfg.load_in_4bit or cfg.load_in_8bit):
+        model = model.to("cuda")
+    return model.eval()
+
+
 def load_policy(cfg: EvalConfig, ov):
-    """Load the OpenVLA model + processor once; reused across all trials."""
+    """Load the OpenVLA model + processor once; reused across all trials.
+
+    Uses OpenVLA's get_model on flash-attn-capable GPUs; otherwise (e.g. T4) loads
+    directly with SDPA attention so the eval still runs.
+    """
     print(f"[load] {cfg.pretrained_checkpoint} (8bit={cfg.load_in_8bit} "
-          f"4bit={cfg.load_in_4bit})", flush=True)
-    model = ov["get_model"](cfg)
+          f"4bit={cfg.load_in_4bit}, flash_attn={_gpu_supports_flash_attn()})",
+          flush=True)
+    if _gpu_supports_flash_attn():
+        model = ov["get_model"](cfg)
+    else:
+        print("[load] GPU lacks flash-attn support -> SDPA fallback (fp16)", flush=True)
+        model = _load_vla_sdpa(cfg)
     processor = ov["get_processor"](cfg) if cfg.model_family == "openvla" else None
     return model, processor
 
