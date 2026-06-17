@@ -59,7 +59,12 @@ def clone(url, dest):
 def main():
     os.makedirs(WORKROOT, exist_ok=True)
 
-    print("=== 1/6 pinned core deps (NOT torch, NOT tensorflow) ===")
+    print("=== system render libs (OSMesa headless GL — avoids EGL/CUDA segfault) ===")
+    run(["bash", "-lc", "apt-get update -y >/dev/null 2>&1; "
+         "apt-get install -y libosmesa6 libgl1-mesa-glx libglfw3 2>&1 | tail -4"],
+        check=False)
+
+    print("\n=== 1/6 pinned core deps (NOT torch, NOT tensorflow) ===")
     pip(*PINNED_CORE)
 
     print("\n=== 2/6 clone OpenVLA + editable install WITHOUT deps (skips TF pin) ===")

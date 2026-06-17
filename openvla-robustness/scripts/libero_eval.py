@@ -32,9 +32,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # Headless MuJoCo rendering on the Colab VM (must be set before robosuite imports).
-# Override the backend from the shell, e.g. `MUJOCO_GL=osmesa python ...`, if EGL
-# segfaults (common on Colab). PyOpenGL's platform is kept in sync with MUJOCO_GL.
-os.environ.setdefault("MUJOCO_GL", "egl")
+# Default to OSMesa (CPU software GL): creating an EGL context on the GPU AFTER torch
+# has initialized CUDA segfaults on Colab. OSMesa never touches the GPU's GL, so it
+# can't conflict — and since rendering is tiny next to T4 inference, it's ~free.
+# Override with `MUJOCO_GL=egl python ...` on hardware where EGL is known-good.
+os.environ.setdefault("MUJOCO_GL", "osmesa")
 os.environ.setdefault("PYOPENGL_PLATFORM", os.environ["MUJOCO_GL"])
 
 import numpy as np
