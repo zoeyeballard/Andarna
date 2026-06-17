@@ -64,6 +64,11 @@ def main():
 
     print("\n=== 3/5 curated eval-only deps ===")
     pip(*EVAL_DEPS)
+    # openvla_utils.py imports dlimp at module load even on the eval path, so it must
+    # be importable. Install moojink's fork WITHOUT deps so it doesn't drag in the old
+    # tensorflow==2.15 pin (TF is already present on the VM and dlimp works with it).
+    run([sys.executable, "-m", "pip", "install", "-q", "--no-deps",
+         "git+https://github.com/moojink/dlimp_openvla"], check=False)
 
     print("\n=== 4/5 flash-attn ===")
     if WANT_FLASH:
