@@ -59,14 +59,14 @@ def clone(url, dest):
 def main():
     os.makedirs(WORKROOT, exist_ok=True)
 
-    print("=== 1/5 pinned core deps (NOT torch, NOT tensorflow) ===")
+    print("=== 1/6 pinned core deps (NOT torch, NOT tensorflow) ===")
     pip(*PINNED_CORE)
 
-    print("\n=== 2/5 clone OpenVLA + editable install WITHOUT deps (skips TF pin) ===")
+    print("\n=== 2/6 clone OpenVLA + editable install WITHOUT deps (skips TF pin) ===")
     clone("https://github.com/openvla/openvla.git", OPENVLA_DIR)
     pip("-e", OPENVLA_DIR, "--no-deps")
 
-    print("\n=== 3/5 curated eval-only deps ===")
+    print("\n=== 3/6 curated eval-only deps ===")
     pip(*EVAL_DEPS)
     # openvla_utils.py imports dlimp at module load even on the eval path, so it must
     # be importable. Install moojink's fork WITHOUT deps so it doesn't drag in the old
@@ -74,7 +74,7 @@ def main():
     run([sys.executable, "-m", "pip", "install", "-q", "--no-deps",
          "git+https://github.com/moojink/dlimp_openvla"], check=False)
 
-    print("\n=== 4/5 flash-attn ===")
+    print("\n=== 4/6 flash-attn ===")
     if WANT_FLASH:
         pip("packaging", "ninja")
         run([sys.executable, "-m", "pip", "install", "-q",
@@ -83,7 +83,7 @@ def main():
         print("[skip] flash-attn (unsupported on Turing/T4; loader uses SDPA). "
               "Set OPENVLA_FLASH_ATTN=1 on an Ampere+ GPU to enable.", flush=True)
 
-    print("\n=== 5/5 clone LIBERO + install (pulls robosuite/mujoco/bddl) ===")
+    print("\n=== 5/6 clone LIBERO + install (pulls robosuite/mujoco/bddl) ===")
     clone("https://github.com/Lifelong-Robot-Learning/LIBERO.git", LIBERO_DIR)
     pip("-e", LIBERO_DIR)
     req = os.path.join(OPENVLA_DIR, "experiments", "robot", "libero",
@@ -93,6 +93,11 @@ def main():
         pip("-r", req, check=False)
     else:
         print(f"[warn] {req} not found — OpenVLA layout may have changed", flush=True)
+
+    # MUST be last: robosuite/mujoco C-extensions segfault under NumPy 2.x, and the
+    # steps above can pull NumPy 2.x back in. Force it down as the final action.
+    print("\n=== 6/6 pin NumPy < 2 (robosuite/mujoco segfault on NumPy 2.x) ===")
+    pip("numpy==1.26.4")
 
     print("\n[OK] install complete (eval-only). Run setup/verify.py next.", flush=True)
 

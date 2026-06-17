@@ -60,6 +60,17 @@ def main():
     except Exception as e:  # noqa: BLE001
         failures.append(f"torch import failed: {e}")
 
+    # --- NumPy must be < 2 (robosuite/mujoco C-exts segfault on 2.x) ---
+    try:
+        import numpy as np
+        major = int(np.__version__.split(".")[0])
+        print(f"numpy                 {np.__version__} "
+              f"({'ok' if major < 2 else 'TOO NEW — rendering will segfault'})")
+        if major >= 2:
+            failures.append(f"numpy {np.__version__} >= 2 — run: pip install numpy==1.26.4")
+    except Exception as e:  # noqa: BLE001
+        failures.append(f"numpy import failed: {e}")
+
     # --- version pin ---
     try:
         import transformers
