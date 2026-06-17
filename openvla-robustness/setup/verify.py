@@ -18,18 +18,22 @@ if os.path.isdir(OPENVLA_DIR) and OPENVLA_DIR not in sys.path:
 
 EXPECTED_TRANSFORMERS = "4.40.1"
 
-# Imports the eval harness genuinely needs (failure => eval can't run).
+# Imports the (TF-free) eval harness genuinely needs (failure => eval can't run).
+# NOTE: we deliberately do NOT import OpenVLA's experiments.robot.* — it pulls
+# dlimp->tensorflow and a fragile protobuf stack the eval doesn't need. The model
+# is loaded directly via transformers AutoModelForVision2Seq + trust_remote_code.
 CRITICAL_IMPORTS = [
     ("torch", "PyTorch"),
     ("transformers", "transformers"),
     ("timm", "timm"),
     ("bitsandbytes", "bitsandbytes (4/8-bit)"),
+    ("PIL", "Pillow"),
+    ("imageio", "imageio"),
     ("libero.libero", "LIBERO"),
-    ("experiments.robot.openvla_utils", "openvla eval utils"),
 ]
 
-# Nice-to-have but NOT needed for eval (flash-attn unsupported on T4; TF/dlimp are
-# only for the RLDS training pipeline). Missing => warn, don't fail.
+# Not needed by the decoupled eval path (flash-attn is Ampere+ only; TF/dlimp are
+# the training data stack we removed from the import chain). Missing => fine.
 OPTIONAL_IMPORTS = [
     ("flash_attn", "flash-attn (Ampere+ only)"),
     ("tensorflow_datasets", "tensorflow-datasets (training only)"),
@@ -76,6 +80,21 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"  [FAIL] {name}: {e}")
             failures.append(f"import {mod}: {e}")
+
+    # functional check: the exact classes the eval path constructs
+    print("\neval-path classes:")
+    try:
+        from transformers import AutoModelForVision2Seq, AutoProcessor  # noqa: F401
+        print("  [ok]   transformers AutoModelForVision2Seq / AutoProcessor")
+    except Exception as e:  # noqa: BLE001
+        print(f"  [FAIL] transformers auto-classes: {e}")
+        failures.append(f"transformers auto-classes: {e}")
+    try:
+        from libero.libero.envs import OffScreenRenderEnv  # noqa: F401
+        print("  [ok]   LIBERO OffScreenRenderEnv (headless sim)")
+    except Exception as e:  # noqa: BLE001
+        print(f"  [FAIL] OffScreenRenderEnv: {e}")
+        failures.append(f"OffScreenRenderEnv: {e}")
 
     print("\noptional imports (fine to be missing for eval):")
     for mod, name in OPTIONAL_IMPORTS:

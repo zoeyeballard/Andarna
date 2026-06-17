@@ -4,25 +4,31 @@ This is the one rollout loop that every experiment shares. ``run_baseline.py`` c
 it with no degrader; ``run_degradation.py`` / ``run_full_sweep.py`` call it with an
 :class:`~robustness.degradations.ObservationDegrader`. The model is never touched —
 the degrader is applied to the policy-input image, *after* LIBERO produces the frame
-and *before* OpenVLA's own preprocessing, which is exactly "what the sensor delivers
-to the policy."
+and *before* the model's own preprocessing, which is exactly "what the sensor
+delivers to the policy."
 
-Runs **on the Colab GPU VM** (needs torch+CUDA, the `openvla` repo, and `LIBERO`).
-The harness adds the OpenVLA repo to sys.path and reuses its validated utilities so
-the action de-normalization / gripper handling matches the official eval exactly.
+Runs **on the Colab GPU VM** (needs torch+CUDA + the `libero` package).
 
-Authored locally; executed via:
-    colab exec -s openvla-session -f scripts/run_baseline.py
+Why we don't import OpenVLA's ``experiments.robot.*`` helpers: that package imports
+``dlimp -> tensorflow_datasets -> tensorflow``, which pulls a fragile TF/protobuf
+stack we don't need for eval. So we reimplement the ~40 lines of eval glue here
+(prompt format, 0.9 center-crop, gripper normalization, LIBERO env setup) to match
+OpenVLA's official ``run_libero_eval.py`` behavior, and talk to the model directly
+via ``AutoModelForVision2Seq`` + ``model.predict_action`` (the documented HF API).
+
+Authored locally; executed via `colab console` -> `python scripts/run_baseline.py ...`.
 """
 
 from __future__ import annotations
 
 import dataclasses
 import json
+import math
 import os
+import random
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 # Headless MuJoCo rendering on the Colab VM (must be set before robosuite imports).
@@ -31,7 +37,7 @@ os.environ.setdefault("PYOPENGL_PLATFORM", "egl")
 
 import numpy as np
 
-# --- make this file runnable both as a module and as a bare `colab exec` script ---
+# --- make this file runnable both as a module and as a bare script ---------------
 _HERE = Path(__file__).resolve().parent
 _PROJECT = _HERE.parent
 for p in (_PROJECT, _HERE):
@@ -40,9 +46,8 @@ for p in (_PROJECT, _HERE):
 
 from robustness.degradations import ObservationDegrader  # noqa: E402
 
-# OpenVLA repo root on the VM (install_remote.py clones it here).
-OPENVLA_DIR = os.environ.get("OPENVLA_DIR", "/content/openvla")
 RESIZE_SIZE = 224  # OpenVLA's LIBERO eval policy-input size
+CENTER_CROP_SCALE = 0.9  # OpenVLA center-crops to 90% area at eval (matches train aug)
 
 # Per-suite episode caps OpenVLA uses (longer suites get more steps).
 MAX_STEPS = {
@@ -53,16 +58,17 @@ MAX_STEPS = {
     "libero_90": 400,
 }
 NUM_STEPS_WAIT = 10  # sim settle steps before the policy takes over
+DUMMY_ACTION = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0]  # no motion, gripper open
 
 
 @dataclass
 class EvalConfig:
-    """Mirrors the fields of OpenVLA's GenerateConfig that the eval path reads."""
+    """Eval configuration (the subset of OpenVLA's GenerateConfig the eval path uses)."""
 
     pretrained_checkpoint: str = "openvla/openvla-7b-finetuned-libero-object"
     task_suite_name: str = "libero_object"
     model_family: str = "openvla"
-    unnorm_key: str = ""               # defaults to task_suite_name if empty
+    unnorm_key: str = ""               # "" => auto-resolve from the model's norm_stats
     center_crop: bool = True
     load_in_8bit: bool = False
     load_in_4bit: bool = False
@@ -73,51 +79,20 @@ class EvalConfig:
     run_name: str = "baseline"
     results_root: str = str(_PROJECT / "results" / "baseline")
 
-    def __post_init__(self):
-        if not self.unnorm_key:
-            self.unnorm_key = self.task_suite_name
 
-
-def _import_openvla():
-    """Import OpenVLA's eval utilities (only available on the VM). Returns a bundle."""
-    if OPENVLA_DIR not in sys.path:
-        sys.path.insert(0, OPENVLA_DIR)
+# --- imports that only exist on the VM --------------------------------------------
+def _import_libero():
+    """Import the LIBERO package (TF-free). Raises a helpful error off-VM."""
     try:
-        from experiments.robot.libero.libero_utils import (
-            get_libero_dummy_action,
-            get_libero_env,
-            get_libero_image,
-            quat2axisangle,
-            save_rollout_video,
-        )
-        from experiments.robot.openvla_utils import get_processor
-        from experiments.robot.robot_utils import (
-            get_action,
-            get_model,
-            invert_gripper_action,
-            normalize_gripper_action,
-            set_seed_everywhere,
-        )
-        from libero.libero import benchmark
+        from libero.libero import benchmark, get_libero_path
+        from libero.libero.envs import OffScreenRenderEnv
     except ImportError as e:  # pragma: no cover - only hits off-VM
         raise RuntimeError(
-            "OpenVLA/LIBERO not importable. This engine runs on the Colab VM after "
-            f"setup/install_remote.py. (OPENVLA_DIR={OPENVLA_DIR}); import error: {e}"
+            "LIBERO not importable. This engine runs on the Colab VM after "
+            f"setup/install_remote.py. import error: {e}"
         ) from e
-    return dict(
-        get_libero_dummy_action=get_libero_dummy_action,
-        get_libero_env=get_libero_env,
-        get_libero_image=get_libero_image,
-        quat2axisangle=quat2axisangle,
-        save_rollout_video=save_rollout_video,
-        get_processor=get_processor,
-        get_action=get_action,
-        get_model=get_model,
-        invert_gripper_action=invert_gripper_action,
-        normalize_gripper_action=normalize_gripper_action,
-        set_seed_everywhere=set_seed_everywhere,
-        benchmark=benchmark,
-    )
+    return {"benchmark": benchmark, "get_libero_path": get_libero_path,
+            "OffScreenRenderEnv": OffScreenRenderEnv}
 
 
 def _gpu_supports_flash_attn() -> bool:
@@ -132,19 +107,25 @@ def _gpu_supports_flash_attn() -> bool:
         return False
 
 
-def _load_vla_sdpa(cfg: EvalConfig):
-    """Direct load with SDPA attention + fp16 — the path that runs on a T4.
+# --- model loading (direct; no OpenVLA experiments package) -----------------------
+def load_policy(cfg: EvalConfig):
+    """Load the OpenVLA model + processor once. Returns (model, processor, dtype).
 
-    OpenVLA's get_vla() forces attn_implementation='flash_attention_2', which fails
-    on Turing. We load the same model class ourselves so model.predict_action (used
-    by get_action) still works, just with PyTorch's scaled-dot-product attention.
+    flash-attn on Ampere+ (bf16); SDPA + fp16 on a T4. unnorm_key is auto-resolved
+    from the checkpoint's own norm_stats so we never guess the dataset key.
     """
     import torch
-    from transformers import AutoModelForVision2Seq
+    from transformers import AutoModelForVision2Seq, AutoProcessor
+
+    flash = _gpu_supports_flash_attn()
+    dtype = torch.bfloat16 if flash else torch.float16
+    print(f"[load] {cfg.pretrained_checkpoint} "
+          f"(4bit={cfg.load_in_4bit} 8bit={cfg.load_in_8bit} "
+          f"attn={'flash_attention_2' if flash else 'sdpa'} dtype={dtype})", flush=True)
 
     kwargs = dict(
-        attn_implementation="sdpa",
-        torch_dtype=torch.float16,   # T4 has no native bf16 compute
+        attn_implementation="flash_attention_2" if flash else "sdpa",
+        torch_dtype=dtype,
         low_cpu_mem_usage=True,
         trust_remote_code=True,
     )
@@ -152,68 +133,131 @@ def _load_vla_sdpa(cfg: EvalConfig):
         kwargs["load_in_4bit"] = True
     elif cfg.load_in_8bit:
         kwargs["load_in_8bit"] = True
+
     model = AutoModelForVision2Seq.from_pretrained(cfg.pretrained_checkpoint, **kwargs)
     if not (cfg.load_in_4bit or cfg.load_in_8bit):
         model = model.to("cuda")
-    return model.eval()
+    model.eval()
+    processor = AutoProcessor.from_pretrained(
+        cfg.pretrained_checkpoint, trust_remote_code=True)
+
+    # Resolve the action un-normalization key from the model itself.
+    norm_stats = getattr(model, "norm_stats", None)
+    if norm_stats:
+        keys = list(norm_stats.keys())
+        if cfg.unnorm_key and cfg.unnorm_key in norm_stats:
+            pass
+        elif len(keys) == 1:
+            print(f"[load] unnorm_key -> '{keys[0]}' (only key in checkpoint)", flush=True)
+            cfg.unnorm_key = keys[0]
+        elif cfg.task_suite_name in norm_stats:
+            cfg.unnorm_key = cfg.task_suite_name
+        else:
+            raise ValueError(
+                f"unnorm_key '{cfg.unnorm_key}' not in checkpoint norm_stats {keys}; "
+                "pass --checkpoint's correct key.")
+    print(f"[load] using unnorm_key='{cfg.unnorm_key}'", flush=True)
+    return model, processor, dtype
 
 
-def load_policy(cfg: EvalConfig, ov):
-    """Load the OpenVLA model + processor once; reused across all trials.
-
-    Uses OpenVLA's get_model on flash-attn-capable GPUs; otherwise (e.g. T4) loads
-    directly with SDPA attention so the eval still runs.
-    """
-    print(f"[load] {cfg.pretrained_checkpoint} (8bit={cfg.load_in_8bit} "
-          f"4bit={cfg.load_in_4bit}, flash_attn={_gpu_supports_flash_attn()})",
-          flush=True)
-    if _gpu_supports_flash_attn():
-        model = ov["get_model"](cfg)
-    else:
-        print("[load] GPU lacks flash-attn support -> SDPA fallback (fp16)", flush=True)
-        model = _load_vla_sdpa(cfg)
-    processor = ov["get_processor"](cfg) if cfg.model_family == "openvla" else None
-    return model, processor
+# --- eval-glue reimplemented to match OpenVLA's run_libero_eval.py -----------------
+def _center_crop(image, scale: float = CENTER_CROP_SCALE):
+    """Center-crop to ``scale`` *area* then resize back — OpenVLA's eval-time crop."""
+    from PIL import Image
+    w, h = image.size
+    side = math.sqrt(scale)
+    cw, ch = int(round(w * side)), int(round(h * side))
+    left, top = (w - cw) // 2, (h - ch) // 2
+    return image.crop((left, top, left + cw, top + ch)).resize((w, h), Image.BILINEAR)
 
 
-def _state_vector(obs, quat2axisangle):
-    return np.concatenate([
-        obs["robot0_eef_pos"],
-        quat2axisangle(obs["robot0_eef_quat"]),
-        obs["robot0_gripper_qpos"],
-    ])
+def _build_prompt(instruction: str) -> str:
+    return f"In: What action should the robot take to {instruction.lower()}?\nOut:"
 
 
+def predict_action(model, processor, dtype, img_uint8: np.ndarray,
+                   instruction: str, unnorm_key: str, center_crop: bool) -> np.ndarray:
+    """One OpenVLA action from one (already-degraded) RGB frame."""
+    from PIL import Image
+    image = Image.fromarray(img_uint8).convert("RGB")
+    if center_crop:
+        image = _center_crop(image)
+    inputs = processor(_build_prompt(instruction), image).to("cuda", dtype=dtype)
+    action = model.predict_action(**inputs, unnorm_key=unnorm_key, do_sample=False)
+    return np.asarray(action, dtype=np.float32).reshape(-1)
+
+
+def normalize_gripper_action(action: np.ndarray, binarize: bool = True) -> np.ndarray:
+    """Map gripper dim from [0,1] -> [-1,1] (binarized), matching OpenVLA."""
+    action = action.copy()
+    action[-1] = 2.0 * (action[-1] - 0.0) / (1.0 - 0.0) - 1.0
+    if binarize:
+        action[-1] = float(np.sign(action[-1]))
+    return action
+
+
+def invert_gripper_action(action: np.ndarray) -> np.ndarray:
+    """LIBERO's gripper convention is inverted vs the model's output."""
+    action = action.copy()
+    action[-1] *= -1.0
+    return action
+
+
+def make_libero_env(lb, task, resolution: int = 256):
+    bddl = os.path.join(lb["get_libero_path"]("bddl_files"),
+                        task.problem_folder, task.bddl_file)
+    env = lb["OffScreenRenderEnv"](
+        bddl_file_name=bddl, camera_heights=resolution, camera_widths=resolution)
+    env.seed(0)
+    return env, task.language
+
+
+def extract_agentview(obs, resize_size: int = RESIZE_SIZE) -> np.ndarray:
+    """LIBERO agentview frame -> the policy-input RGB (flip 180, resize)."""
+    from PIL import Image
+    img = obs["agentview_image"][::-1, ::-1]  # LIBERO renders 180-deg rotated
+    img = Image.fromarray(img).resize((resize_size, resize_size), Image.LANCZOS)
+    return np.asarray(img, dtype=np.uint8)
+
+
+def _set_seed(seed: int):
+    import torch
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def _save_video(frames, path: Path, fps: int = 10):
+    import imageio
+    imageio.mimwrite(str(path), [np.asarray(f, np.uint8) for f in frames],
+                     fps=fps, macro_block_size=None)
+
+
+# --- orchestration ----------------------------------------------------------------
 def prepare(cfg: EvalConfig):
-    """Import OpenVLA and load the model+processor ONCE. Return a reusable bundle.
-
-    A full sweep (many degradation levels, same checkpoint) should call this once and
-    pass the result to every ``run_eval`` via ``prepared=`` — loading the 7B model is
-    the slow part, and it is identical across levels.
-    """
-    ov = _import_openvla()
-    model, processor = load_policy(cfg, ov)
-    return {"ov": ov, "model": model, "processor": processor}
+    """Import LIBERO and load the model ONCE; reuse across all sweep levels."""
+    lb = _import_libero()
+    model, processor, dtype = load_policy(cfg)
+    return {"lb": lb, "model": model, "processor": processor, "dtype": dtype}
 
 
 def run_eval(cfg: EvalConfig, degrader: ObservationDegrader | None = None,
              prepared: dict | None = None) -> dict:
-    """Run the full suite eval (optionally degraded). Returns the summary dict and
-    writes ``trials.jsonl`` + ``summary.json`` under ``results_root/run_name``.
-
-    Pass ``prepared`` (from :func:`prepare`) to reuse an already-loaded model.
-    """
+    """Run the full suite eval (optionally degraded). Writes trials.jsonl + summary.json."""
     if prepared is None:
         prepared = prepare(cfg)
-    ov, model, processor = prepared["ov"], prepared["model"], prepared["processor"]
-    ov["set_seed_everywhere"](cfg.seed)
+    lb, model, processor, dtype = (prepared["lb"], prepared["model"],
+                                   prepared["processor"], prepared["dtype"])
+    _set_seed(cfg.seed)
 
     run_dir = Path(cfg.results_root) / cfg.run_name
     run_dir.mkdir(parents=True, exist_ok=True)
     trials_path = run_dir / "trials.jsonl"
     video_dir = run_dir / "videos"
 
-    suite = ov["benchmark"].get_benchmark_dict()[cfg.task_suite_name]()
+    suite = lb["benchmark"].get_benchmark_dict()[cfg.task_suite_name]()
     n_tasks = suite.n_tasks if cfg.num_tasks == 0 else min(cfg.num_tasks, suite.n_tasks)
     max_steps = MAX_STEPS.get(cfg.task_suite_name, 300)
 
@@ -227,8 +271,7 @@ def run_eval(cfg: EvalConfig, degrader: ObservationDegrader | None = None,
         for task_id in range(n_tasks):
             task = suite.get_task(task_id)
             init_states = suite.get_task_init_states(task_id)
-            env, task_description = ov["get_libero_env"](
-                task, cfg.model_family, resolution=256)
+            env, task_description = make_libero_env(lb, task, resolution=256)
 
             for ep in range(cfg.num_trials_per_task):
                 episode_seed = cfg.seed + task_id * 1000 + ep
@@ -241,24 +284,20 @@ def run_eval(cfg: EvalConfig, degrader: ObservationDegrader | None = None,
 
                 for t in range(max_steps + NUM_STEPS_WAIT):
                     if t < NUM_STEPS_WAIT:
-                        obs, _, done, _ = env.step(
-                            ov["get_libero_dummy_action"](cfg.model_family))
+                        obs, _, done, _ = env.step(DUMMY_ACTION)
                         continue
 
-                    img = ov["get_libero_image"](obs, RESIZE_SIZE)  # H,W,3 uint8
+                    img = extract_agentview(obs, RESIZE_SIZE)  # H,W,3 uint8
                     if degrader is not None:
                         img = degrader.process(img)
                     if len(frames) < 400:
                         frames.append(img)
 
-                    observation = {
-                        "full_image": img,
-                        "state": _state_vector(obs, ov["quat2axisangle"]),
-                    }
-                    action = ov["get_action"](
-                        cfg, model, observation, task_description, processor=processor)
-                    action = ov["normalize_gripper_action"](action, binarize=True)
-                    action = ov["invert_gripper_action"](action)
+                    action = predict_action(model, processor, dtype, img,
+                                            task_description, cfg.unnorm_key,
+                                            cfg.center_crop)
+                    action = normalize_gripper_action(action, binarize=True)
+                    action = invert_gripper_action(action)
 
                     obs, _, done, _ = env.step(action.tolist())
                     steps += 1
@@ -282,12 +321,12 @@ def run_eval(cfg: EvalConfig, degrader: ObservationDegrader | None = None,
                 tf.write(json.dumps(record) + "\n")
                 tf.flush()
 
-                if ep < cfg.save_videos:
+                if ep < cfg.save_videos and frames:
                     try:
-                        os.makedirs(video_dir, exist_ok=True)
-                        ov["save_rollout_video"](
-                            frames, f"{cfg.run_name}_t{task_id}_e{ep}",
-                            success=success, task_description=task_description)
+                        video_dir.mkdir(parents=True, exist_ok=True)
+                        _save_video(frames, video_dir /
+                                    f"{cfg.run_name}_t{task_id}_e{ep}"
+                                    f"_{'ok' if success else 'fail'}.mp4")
                     except Exception as e:  # noqa: BLE001 - video is best-effort
                         print(f"[warn] video save failed: {e}", flush=True)
 
@@ -299,8 +338,7 @@ def run_eval(cfg: EvalConfig, degrader: ObservationDegrader | None = None,
     with open(run_dir / "summary.json", "w") as f:
         json.dump(summary, f, indent=2)
     print(f"\n[done] success_rate={summary['success_rate']:.3f} "
-          f"({summary['n_success']}/{summary['n_trials']}) "
-          f"-> {run_dir}", flush=True)
+          f"({summary['n_success']}/{summary['n_trials']}) -> {run_dir}", flush=True)
     _print_table(summary)
     return summary
 
@@ -309,7 +347,6 @@ def summarize(trials, cfg: EvalConfig, deg_meta: dict, elapsed_s: float) -> dict
     n = len(trials)
     n_succ = sum(t["success"] for t in trials)
     succ_lengths = [t["episode_length"] for t in trials if t["success"]]
-    # per-task breakdown
     per_task = {}
     for t in trials:
         d = per_task.setdefault(t["task"], {"n": 0, "success": 0})
