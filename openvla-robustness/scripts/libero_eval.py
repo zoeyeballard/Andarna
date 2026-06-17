@@ -81,8 +81,26 @@ class EvalConfig:
 
 
 # --- imports that only exist on the VM --------------------------------------------
+def _patch_torch_load():
+    """torch>=2.6 defaults torch.load(weights_only=True), which refuses to unpickle
+    LIBERO's numpy-array init-state files. They're trusted local sim assets, so make
+    weights_only=False the default. Idempotent."""
+    import torch
+    if getattr(torch.load, "_libero_compat", False):
+        return
+    _orig = torch.load
+
+    def _patched(*args, **kwargs):
+        kwargs.setdefault("weights_only", False)
+        return _orig(*args, **kwargs)
+
+    _patched._libero_compat = True
+    torch.load = _patched
+
+
 def _import_libero():
     """Import the LIBERO package (TF-free). Raises a helpful error off-VM."""
+    _patch_torch_load()
     try:
         from libero.libero import benchmark, get_libero_path
         from libero.libero.envs import OffScreenRenderEnv
