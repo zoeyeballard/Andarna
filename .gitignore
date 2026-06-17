@@ -1,0 +1,21 @@
+# Python / venv
+.venv/
+__pycache__/
+*.pyc
+
+# Generated CR-stripped run scripts
+scripts/.*_run.sh
+
+# Large training/eval artifacts (checkpoints are ~200MB each)
+outputs/train/
+outputs/eval/
+outputs/smoke/
+outputs/*.log
+outputs/*.txt
+
+# Keep small summary artifacts that ARE committed (see below):
+!outputs/results/
+
+# HF / torch caches (these live in ~/.cache anyway, but just in case)
+*.safetensors
+wandb/
