@@ -32,8 +32,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # Headless MuJoCo rendering on the Colab VM (must be set before robosuite imports).
+# Override the backend from the shell, e.g. `MUJOCO_GL=osmesa python ...`, if EGL
+# segfaults (common on Colab). PyOpenGL's platform is kept in sync with MUJOCO_GL.
 os.environ.setdefault("MUJOCO_GL", "egl")
-os.environ.setdefault("PYOPENGL_PLATFORM", "egl")
+os.environ.setdefault("PYOPENGL_PLATFORM", os.environ["MUJOCO_GL"])
 
 import numpy as np
 
