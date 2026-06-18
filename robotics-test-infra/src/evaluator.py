@@ -190,9 +190,19 @@ class PolicyEvaluator:
 
     # ------------------------------------------------------------------ #
     def _run_episode(
-        self, seed: int, episode_index: int, capture_frames: bool = False
+        self,
+        seed: int,
+        episode_index: int,
+        capture_frames: bool = False,
+        action_trace: list | None = None,
+        step_times_ms: list | None = None,
     ) -> tuple[EpisodeResult, list]:
-        """Run one instrumented rollout. Returns (result, captured_frames)."""
+        """Run one instrumented rollout. Returns (result, captured_frames).
+
+        Optional out-params (used by the determinism and benchmark tools, so they share
+        this single rollout loop): ``action_trace`` collects each applied action array;
+        ``step_times_ms`` collects each ``env.step`` wall time in ms.
+        """
         policy, env = self.policy, self.env
         policy.reset()
         obs, _info = env.reset(seed=[seed])
@@ -226,8 +236,13 @@ class PolicyEvaluator:
             action = self.postprocessor(action)
             action = self.env_postprocessor({self._ACTION: action})[self._ACTION]
             action_np = action.to("cpu").numpy()
+            if action_trace is not None:
+                action_trace.append(np.array(action_np, copy=True))
 
+            t_step = time.perf_counter()
             obs, reward, terminated, truncated, info = env.step(action_np)
+            if step_times_ms is not None:
+                step_times_ms.append((time.perf_counter() - t_step) * 1000.0)
             executed += 1
             if capture_frames:
                 frames.append(env.envs[0].render())
