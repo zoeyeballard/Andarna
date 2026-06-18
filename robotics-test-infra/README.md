@@ -63,18 +63,84 @@ robotics-test-infra/
 > repo, the Project-3 workflow YAMLs live at the repo root prefixed `proj3_*.yml`
 > and `cd robotics-test-infra` before running. See [ARCHITECTURE.md](ARCHITECTURE.md).
 
+## Status / results
+
+The pipeline is live: **Tier 1 runs green on GitHub** on every push. Tiers 2/3 build
+the Docker sim image and run real MuJoCo episodes; they activate once the checkpoint is
+configured (see *CI setup* below) and stay green-by-no-op until then.
+
+Measured against the Project-1 ACT checkpoint (5 episodes × 200 steps, seed 100000):
+
+| Metric | Value | Note |
+|--------|-------|------|
+| Success rate | **0.00** (0/5) | undertrained policy — genuinely doesn't grasp yet |
+| Avg episode length | 200 steps | all time out at the cap |
+| Inference latency p95 | **~2.6 ms** | steady-state (queue replay) — the gated budget |
+| Inference latency max | **~1.3 s** | periodic chunk-boundary forward pass (WCET) |
+| Loop breakdown | inference ≈ **4.6%** | MuJoCo step+render dominates (~180 ms/step) |
+| Determinism | ✅ identical | same seed → byte-identical trajectory (50 steps) |
+
+The 0% success is intentional and honestly reported: we **don't gate on task success**
+yet (`success_rate_threshold = 0.0`). The binding, passing gates are the **p95 latency
+budget** and the **regression check** — which is how early-stage robotics CI actually
+looks. See [ARCHITECTURE.md](ARCHITECTURE.md) for the rationale.
+
 ## Quick start (local, CPU)
 
 ```bash
 cd robotics-test-infra
-# light deps (lint + unit tests) — no MuJoCo needed
+# Tier-1 deps only (lint + unit tests) — no MuJoCo needed
 uv pip install --python ../.venv/bin/python -e ".[dev]"
-pytest tests/unit -v
+pytest tests/unit -v            # 56 unit tests, < 1s
+ruff check src tests scripts && mypy src
 
-# full sim stack (already present in the shared Project-1 venv)
-MUJOCO_GL=egl python scripts/run_evaluation.py --num_episodes 3
+# Full sim stack is already present in the shared Project-1 venv. Render with EGL
+# locally (osmesa in the CI container).
+export MUJOCO_GL=egl
+python scripts/preflight.py                              # checkpoint + env health (5d/5e)
+python scripts/run_evaluation.py --num_episodes 3        # eval → results.json + PR comment
+python scripts/check_determinism.py --max_steps 50       # same seed → same trajectory (5a)
+python scripts/benchmark.py --num_episodes 3             # latency/throughput profile (5b)
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the testing-pyramid rationale and
-[TESTING_PHILOSOPHY.md](TESTING_PHILOSOPHY.md) for how this maps to real-time /
-embedded validation (WCET, jitter, deadline monitoring).
+## Updating the baseline
+
+The regression gate compares each run to `baselines/baseline_metrics.json`. Re-record
+it whenever the checkpoint or the eval profile changes (use the **same** profile the
+PR check runs at):
+
+```bash
+python scripts/update_baseline.py --num_episodes 5 --max_episode_steps 200 --seed 100000
+```
+
+In CI, the Tier-3 workflow has an `update_baseline` `workflow_dispatch` input that
+records and commits a fresh baseline in the canonical (Docker/OSMesa) environment.
+
+## Adding a test scenario
+
+`EvalConfig` carries `env_type`/`task`, and the baseline schema has a `per_task_results`
+slot, so a new task is mostly configuration:
+
+```bash
+python scripts/run_evaluation.py --task AlohaInsertion-v0 --num_episodes 5
+```
+
+New metrics go in `metrics.py` (compute + a tolerance entry in
+`DEFAULT_LOWER_IS_BETTER_TOL`); new gates go in `passes_threshold`. See
+[ARCHITECTURE.md](ARCHITECTURE.md) § *Extending the framework* for multi-task,
+perturbation (Project 2), and hardware-in-the-loop paths.
+
+## CI setup (one-time, to enable Tiers 2/3)
+
+1. Push the ACT checkpoint to the Hugging Face Hub.
+2. Repo *Settings → Secrets and variables → Actions*: set variable
+   `RTI_CHECKPOINT_PATH` (the Hub repo id) and, if private, secret `HF_TOKEN`.
+3. Open a PR to `main` — the sim-validation and regression comments appear on it.
+
+## Further reading
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — the testing pyramid, Docker/OSMesa rationale,
+  regression-tolerance tuning, and how this extends to HIL.
+- [TESTING_PHILOSOPHY.md](TESTING_PHILOSOPHY.md) — how this maps to real-time /
+  embedded validation: WCET vs. p95, jitter, deadline monitoring, why determinism is
+  non-negotiable, and why the harness — not the model — is the product.
