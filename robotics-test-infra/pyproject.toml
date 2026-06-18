@@ -26,6 +26,7 @@ sim = [
     "gymnasium==1.3.0",
     "imageio>=2.34",
     "imageio-ffmpeg>=0.5",
+    "pillow>=10.0",       # text overlays on captured frames
 ]
 # --- Dev / test tooling (Tier 1) ---
 dev = [
