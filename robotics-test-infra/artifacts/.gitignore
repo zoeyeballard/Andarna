@@ -1,0 +1,4 @@
+# Local test artifacts (videos, raw results) are regenerable — don't commit them.
+*
+!.gitignore
+!summaries/
