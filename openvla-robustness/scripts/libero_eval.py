@@ -118,13 +118,21 @@ def _import_libero():
 
 
 def _gpu_supports_flash_attn() -> bool:
-    """flash-attn 2.x needs Ampere+ (sm80). T4/V100 (Turing/Volta) do not qualify."""
+    """True only if flash-attn 2.x will actually load: needs Ampere+ (sm80) AND the
+    ``flash_attn`` package importable. T4/V100 (Turing/Volta) fail the arch test; a
+    bare GPU box with no ``flash_attn`` installed fails the package test (so the
+    loader cleanly picks SDPA + fp16 instead of requesting a kernel that isn't there).
+    Set OPENVLA_FLASH_ATTN=1 in install_remote.py to build the wheel on Ampere+."""
     try:
+        import importlib.util
+
         import torch
         if not torch.cuda.is_available():
             return False
         major, _ = torch.cuda.get_device_capability(0)
-        return major >= 8
+        if major < 8:
+            return False
+        return importlib.util.find_spec("flash_attn") is not None
     except Exception:  # noqa: BLE001
         return False
 
