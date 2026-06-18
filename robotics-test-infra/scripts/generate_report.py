@@ -67,14 +67,17 @@ def main(argv=None) -> int:
         Path(args.out_validation).write_text(validation)
 
     if args.baseline:
+        # Regression gate (Tier 3): exit code reflects regression only. Threshold
+        # pass/fail is Tier 2's responsibility, so it isn't double-counted here.
         baseline = json.loads(Path(args.baseline).read_text())
         report = compare_to_baseline(metrics, baseline)
         regression = render_regression_comment(report, baseline_meta=baseline)
         print("\n" + regression)
         if args.out_regression:
             Path(args.out_regression).write_text(regression)
-        if report.has_regression:
-            return 1
+        return 1 if report.has_regression else 0
+
+    # Threshold gate (Tier 2 / standalone): exit non-zero if any threshold failed.
     return 0 if thresholds.passed else 1
 
 
