@@ -31,7 +31,10 @@ Claude.md
 # Raw per-trial logs and rollout videos are large/regenerable — commit only the
 # aggregated summaries (summary.json / *.csv) and the figures.
 openvla-robustness/results/**/trials.jsonl
-openvla-robustness/results/**/rollout_*.mp4
+# rollout videos: engine names them <run>_t<task>_e<ep>_<ok|fail>.mp4, so ignore the
+# whole videos/ dir (and any stray mp4) rather than a rollout_* prefix that never matches.
+openvla-robustness/results/**/videos/
+openvla-robustness/results/**/*.mp4
 openvla-robustness/**/*.npy
 # HF model cache / checkpoints if they ever land in-tree
 openvla-robustness/**/checkpoints/

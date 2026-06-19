@@ -94,6 +94,12 @@ def main():
             task_suite_name=args.task_suite,
             center_crop=not args.no_center_crop,
             load_in_4bit=args.load_in_4bit,
+            # Carry the unnorm_key prepare() resolved on base_cfg. Each level builds a
+            # fresh cfg, but the model was loaded ONCE against base_cfg; without this
+            # the per-level cfg.unnorm_key stays "" and model.predict_action asserts
+            # ("unnorm_key not in norm_stats"). The baseline path never hit this because
+            # it resolves the key on the same cfg object it then evaluates.
+            unnorm_key=base_cfg.unnorm_key,
             num_trials_per_task=args.trials,
             num_tasks=args.num_tasks,
             seed=args.seed,
