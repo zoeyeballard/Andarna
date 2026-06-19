@@ -1,0 +1,212 @@
+{
+  "delay_0": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 147.5,
+    "n": 20
+  },
+  "delay_1": {
+    "success_fast": 7,
+    "success_slow": 6,
+    "timeout": 7,
+    "median_success_length": 147.0,
+    "n": 20
+  },
+  "delay_10": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "delay_2": {
+    "success_fast": 6,
+    "success_slow": 5,
+    "timeout": 9,
+    "median_success_length": 166.0,
+    "n": 20
+  },
+  "delay_3": {
+    "success_fast": 4,
+    "success_slow": 3,
+    "timeout": 13,
+    "median_success_length": 190.0,
+    "n": 20
+  },
+  "delay_5": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "delay_8": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "gap_0": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 147.5,
+    "n": 20
+  },
+  "gap_0p05": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 149.5,
+    "n": 20
+  },
+  "gap_0p1": {
+    "success_fast": 7,
+    "success_slow": 6,
+    "timeout": 7,
+    "median_success_length": 138.0,
+    "n": 20
+  },
+  "gap_0p2": {
+    "success_fast": 6,
+    "success_slow": 6,
+    "timeout": 8,
+    "median_success_length": 144.0,
+    "n": 20
+  },
+  "gap_0p3": {
+    "success_fast": 7,
+    "success_slow": 6,
+    "timeout": 7,
+    "median_success_length": 149.0,
+    "n": 20
+  },
+  "gap_0p5": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 158.0,
+    "n": 20
+  },
+  "noise_0": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 147.5,
+    "n": 20
+  },
+  "noise_0p01": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 140.0,
+    "n": 20
+  },
+  "noise_0p02": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 141.5,
+    "n": 20
+  },
+  "noise_0p05": {
+    "success_fast": 7,
+    "success_slow": 6,
+    "timeout": 7,
+    "median_success_length": 142.0,
+    "n": 20
+  },
+  "noise_0p1": {
+    "success_fast": 5,
+    "success_slow": 4,
+    "timeout": 11,
+    "median_success_length": 192.0,
+    "n": 20
+  },
+  "noise_0p15": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "noise_0p2": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "noise_0p3": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "profile_challenging_field": {
+    "success_fast": 2,
+    "success_slow": 2,
+    "timeout": 16,
+    "median_success_length": 272.5,
+    "n": 20
+  },
+  "profile_clean": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 147.5,
+    "n": 20
+  },
+  "profile_field": {
+    "success_fast": 6,
+    "success_slow": 5,
+    "timeout": 9,
+    "median_success_length": 183.0,
+    "n": 20
+  },
+  "profile_high_stress_field": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "profile_lab": {
+    "success_fast": 9,
+    "success_slow": 9,
+    "timeout": 2,
+    "median_success_length": 144.0,
+    "n": 20
+  },
+  "resolution_1": {
+    "success_fast": 7,
+    "success_slow": 7,
+    "timeout": 6,
+    "median_success_length": 147.5,
+    "n": 20
+  },
+  "resolution_2": {
+    "success_fast": 2,
+    "success_slow": 1,
+    "timeout": 17,
+    "median_success_length": 159.0,
+    "n": 20
+  },
+  "resolution_4": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  },
+  "resolution_8": {
+    "success_fast": 0,
+    "success_slow": 0,
+    "timeout": 20,
+    "median_success_length": 0.0,
+    "n": 20
+  }
+}

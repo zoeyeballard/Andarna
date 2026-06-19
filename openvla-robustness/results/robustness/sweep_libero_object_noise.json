@@ -1,0 +1,110 @@
+{
+  "task_suite": "libero_object",
+  "axis": "noise",
+  "points": [
+    {
+      "axis": "noise",
+      "level": 0.0,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 155.57142857142858,
+      "run_name": "libero_object_noise_0",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "noise",
+      "level": 0.01,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 155.57142857142858,
+      "run_name": "libero_object_noise_0p01",
+      "noise_sigma": 0.01,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "noise",
+      "level": 0.02,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 148.0,
+      "run_name": "libero_object_noise_0p02",
+      "noise_sigma": 0.02,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "noise",
+      "level": 0.05,
+      "success_rate": 0.65,
+      "n_success": 13,
+      "n_trials": 20,
+      "mean_success_length": 154.92307692307693,
+      "run_name": "libero_object_noise_0p05",
+      "noise_sigma": 0.05,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "noise",
+      "level": 0.1,
+      "success_rate": 0.45,
+      "n_success": 9,
+      "n_trials": 20,
+      "mean_success_length": 195.33333333333334,
+      "run_name": "libero_object_noise_0p1",
+      "noise_sigma": 0.1,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "noise",
+      "level": 0.15,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_noise_0p15",
+      "noise_sigma": 0.15,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "noise",
+      "level": 0.2,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_noise_0p2",
+      "noise_sigma": 0.2,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "noise",
+      "level": 0.3,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_noise_0p3",
+      "noise_sigma": 0.3,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    }
+  ]
+}

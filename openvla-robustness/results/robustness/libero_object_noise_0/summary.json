@@ -1,0 +1,39 @@
+{
+  "run_name": "libero_object_noise_0",
+  "task_suite": "libero_object",
+  "checkpoint": "openvla/openvla-7b-finetuned-libero-object",
+  "degradation": {
+    "profile": "noise=0.0",
+    "noise_sigma": 0.0,
+    "downscale": 1,
+    "gap_rate": 0.0,
+    "delay": 0
+  },
+  "n_trials": 20,
+  "n_success": 14,
+  "success_rate": 0.7,
+  "mean_success_length": 155.57142857142858,
+  "per_task_success_rate": {
+    "pick up the alphabet soup and place it in the basket": 1.0,
+    "pick up the cream cheese and place it in the basket": 0.75,
+    "pick up the salad dressing and place it in the basket": 1.0,
+    "pick up the bbq sauce and place it in the basket": 0.0,
+    "pick up the ketchup and place it in the basket": 0.75
+  },
+  "elapsed_s": 1520.4,
+  "config": {
+    "pretrained_checkpoint": "openvla/openvla-7b-finetuned-libero-object",
+    "task_suite_name": "libero_object",
+    "model_family": "openvla",
+    "unnorm_key": "libero_object",
+    "center_crop": true,
+    "load_in_8bit": false,
+    "load_in_4bit": false,
+    "num_trials_per_task": 4,
+    "num_tasks": 5,
+    "seed": 7,
+    "save_videos": 2,
+    "run_name": "libero_object_noise_0",
+    "results_root": "results/robustness"
+  }
+}
