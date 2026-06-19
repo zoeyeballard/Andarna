@@ -139,6 +139,12 @@ class PolicyEvaluator:
         try:
             policy_cfg = PreTrainedConfig.from_pretrained(ckpt)
             policy_cfg.pretrained_path = ckpt
+            # The eval device, not the checkpoint's training device, governs where the
+            # policy runs. A checkpoint trained on cuda records device="cuda" in its
+            # config; loading it as-is puts the model on cuda while the preprocessor
+            # (overridden below) feeds cpu tensors -> "tensors on different devices".
+            # CI is cpu-only, so a GPU-trained checkpoint must still eval on cpu here.
+            policy_cfg.device = self.config.device
             self.policy = make_policy(cfg=policy_cfg, env_cfg=env_cfg)
             self.policy.eval()
             self.preprocessor, self.postprocessor = make_pre_post_processors(
