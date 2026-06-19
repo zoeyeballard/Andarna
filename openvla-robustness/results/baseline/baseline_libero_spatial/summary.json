@@ -1,0 +1,35 @@
+{
+  "run_name": "baseline_libero_spatial",
+  "task_suite": "libero_spatial",
+  "checkpoint": "openvla/openvla-7b-finetuned-libero-spatial",
+  "degradation": {
+    "profile": "clean"
+  },
+  "n_trials": 50,
+  "n_success": 44,
+  "success_rate": 0.88,
+  "mean_success_length": 107.18181818181819,
+  "per_task_success_rate": {
+    "pick up the black bowl between the plate and the ramekin and place it on the plate": 0.8,
+    "pick up the black bowl next to the ramekin and place it on the plate": 0.9,
+    "pick up the black bowl from table center and place it on the plate": 0.8,
+    "pick up the black bowl on the cookie box and place it on the plate": 1.0,
+    "pick up the black bowl in the top drawer of the wooden cabinet and place it on the plate": 0.9
+  },
+  "elapsed_s": 2442.6,
+  "config": {
+    "pretrained_checkpoint": "openvla/openvla-7b-finetuned-libero-spatial",
+    "task_suite_name": "libero_spatial",
+    "model_family": "openvla",
+    "unnorm_key": "libero_spatial",
+    "center_crop": true,
+    "load_in_8bit": false,
+    "load_in_4bit": false,
+    "num_trials_per_task": 10,
+    "num_tasks": 5,
+    "seed": 7,
+    "save_videos": 2,
+    "run_name": "baseline_libero_spatial",
+    "results_root": "results/baseline"
+  }
+}
