@@ -1,0 +1,75 @@
+# Project 3 · Tier 2b — Configuration Matrix (5c)
+# Runs the evaluation across several seeds/configs to prove the harness and policy
+# behave across more than one lucky setup. Informational (doesn't gate PRs) — it fails
+# only if the harness itself errors on a config. Manual + weekly.
+name: "Project 3 · Matrix — Multi-config Validation"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  check-config:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.gate.outputs.configured }}
+    steps:
+      - id: gate
+        run: |
+          if [ -z "${{ vars.RTI_CHECKPOINT_PATH }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::RTI_CHECKPOINT_PATH not set — matrix skipped."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  matrix-eval:
+    needs: check-config
+    if: needs.check-config.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [42, 123, 456]
+        max_episode_steps: [200]
+        num_episodes: [3]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build sim image (shared cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: robotics-test-infra
+          load: true
+          tags: robotics-test-infra:ci
+          cache-from: type=gha,scope=proj3-sim
+          cache-to: type=gha,mode=max,scope=proj3-sim
+
+      - name: Pre-flight + evaluate (seed=${{ matrix.seed }})
+        run: |
+          mkdir -p robotics-test-infra/artifacts
+          docker run --rm \
+            -e RTI_CHECKPOINT_PATH="${{ vars.RTI_CHECKPOINT_PATH }}" \
+            -e HF_TOKEN="${{ secrets.HF_TOKEN }}" \
+            -e RTI_SEED=${{ matrix.seed }} \
+            -e RTI_NUM_EPISODES=${{ matrix.num_episodes }} \
+            -e RTI_MAX_EPISODE_STEPS=${{ matrix.max_episode_steps }} \
+            -v "${{ github.workspace }}/robotics-test-infra/artifacts:/app/artifacts" \
+            robotics-test-infra:ci \
+            sh -c "python scripts/preflight.py && python scripts/run_evaluation.py --output_dir artifacts --no_video"
+
+      - name: Upload matrix cell results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matrix-s${{ matrix.seed }}-n${{ matrix.num_episodes }}-m${{ matrix.max_episode_steps }}
+          path: robotics-test-infra/artifacts/results.json
+          if-no-files-found: warn

@@ -21,11 +21,18 @@ outputs/*.txt
 *.safetensors
 wandb/
 
-# .env files
+# Secrets and prompt files (never commit)
 .env
-
-# prompts
 Claude.md
+Project3.md
+
+# Generated / large artifacts (spec boilerplate)
+.ipynb_checkpoints/
+runs/
+*.pt
+*.bin
+adapter_tmp/
+node_modules/
 
 # --- Project 2: openvla-robustness ---
 # Raw per-trial logs and rollout videos are large/regenerable — commit only the
@@ -38,7 +45,19 @@ openvla-robustness/results/**/*.mp4
 openvla-robustness/**/*.npy
 # HF model cache / checkpoints if they ever land in-tree
 openvla-robustness/**/checkpoints/
-openvla-robustness/**/*.bin
-adapter_tmp/
 # Local copy of the colab session log can get large
 openvla-robustness/session_log.ipynb
+
+# --- Project 3: robotics-test-infra ---
+# Local run outputs (videos, raw results JSON) are regenerable — commit only the
+# small summaries under artifacts/summaries/ and the committed baseline.
+robotics-test-infra/artifacts/*
+!robotics-test-infra/artifacts/.gitignore
+!robotics-test-infra/artifacts/summaries/
+robotics-test-infra/**/__pycache__/
+robotics-test-infra/.pytest_cache/
+robotics-test-infra/.mypy_cache/
+robotics-test-infra/.ruff_cache/
+robotics-test-infra/**/*.mp4
+# results JSON the evaluator writes locally; baselines/ is committed, results/ is not
+robotics-test-infra/results/
