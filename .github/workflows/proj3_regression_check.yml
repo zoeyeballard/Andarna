@@ -1,0 +1,173 @@
+# Project 3 · Tier 3 — Regression Check
+# Re-runs the evaluation and compares it to the committed baseline
+# (baselines/baseline_metrics.json). Fails the build on a flagged regression and posts
+# a regression-analysis PR comment. A workflow_dispatch path can refresh the baseline.
+name: "Project 3 · Tier 3 — Regression Check"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "robotics-test-infra/**"
+      - ".github/workflows/proj3_regression_check.yml"
+  workflow_dispatch:
+    inputs:
+      update_baseline:
+        description: "Re-record the baseline from a fresh run and commit it"
+        type: boolean
+        default: false
+      num_episodes:
+        description: "Episodes for the baseline run"
+        default: "50"
+      max_episode_steps:
+        description: "Per-episode step cap"
+        default: "400"
+
+permissions:
+  contents: read
+
+jobs:
+  # --- PR regression gate ------------------------------------------------ #
+  regression:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gate on checkpoint configuration
+        id: gate
+        run: |
+          if [ -z "${{ vars.RTI_CHECKPOINT_PATH }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::RTI_CHECKPOINT_PATH not set — skipping regression check."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.gate.outputs.configured == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build sim image (shared cache with Tier 2)
+        if: steps.gate.outputs.configured == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: robotics-test-infra
+          load: true
+          tags: robotics-test-infra:ci
+          cache-from: type=gha,scope=proj3-sim
+          cache-to: type=gha,mode=max,scope=proj3-sim
+
+      - name: Run evaluation
+        if: steps.gate.outputs.configured == 'true'
+        run: |
+          mkdir -p robotics-test-infra/artifacts
+          docker run --rm \
+            -e RTI_CHECKPOINT_PATH="${{ vars.RTI_CHECKPOINT_PATH }}" \
+            -e HF_TOKEN="${{ secrets.HF_TOKEN }}" \
+            -e RTI_NUM_EPISODES=5 \
+            -e RTI_MAX_EPISODE_STEPS=400 \
+            -e RTI_SEED=100000 \
+            -v "${{ github.workspace }}/robotics-test-infra/artifacts:/app/artifacts" \
+            robotics-test-infra:ci \
+            python scripts/run_evaluation.py --output_dir artifacts --no_video
+
+      - name: Regression analysis vs. baseline
+        id: regress
+        if: steps.gate.outputs.configured == 'true'
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/robotics-test-infra/artifacts:/app/artifacts" \
+            robotics-test-infra:ci \
+            python scripts/generate_report.py \
+              --results artifacts/results.json \
+              --baseline baselines/baseline_metrics.json \
+              --out_regression artifacts/regression_comment.md
+
+      - name: Post regression PR comment
+        if: always() && steps.gate.outputs.configured == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'robotics-test-infra/artifacts/regression_comment.md';
+            if (!fs.existsSync(path)) { core.warning('no regression_comment.md'); return; }
+            const marker = '<!-- proj3-regression -->';
+            const body = marker + '\n' + fs.readFileSync(path, 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.data.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Upload regression artifacts
+        if: always() && steps.gate.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-${{ github.run_id }}
+          path: |
+            robotics-test-infra/artifacts/results.json
+            robotics-test-infra/artifacts/regression_comment.md
+          if-no-files-found: warn
+
+  # --- manual baseline refresh ------------------------------------------ #
+  update-baseline:
+    if: github.event_name == 'workflow_dispatch' && inputs.update_baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # commit the new baseline back to the branch
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gate on checkpoint configuration
+        id: gate
+        run: |
+          if [ -z "${{ vars.RTI_CHECKPOINT_PATH }}" ]; then
+            echo "::error::RTI_CHECKPOINT_PATH not set — cannot record a baseline."
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build sim image (shared cache with Tier 2)
+        uses: docker/build-push-action@v6
+        with:
+          context: robotics-test-infra
+          load: true
+          tags: robotics-test-infra:ci
+          cache-from: type=gha,scope=proj3-sim
+          cache-to: type=gha,mode=max,scope=proj3-sim
+
+      - name: Record new baseline
+        run: |
+          docker run --rm \
+            -e RTI_CHECKPOINT_PATH="${{ vars.RTI_CHECKPOINT_PATH }}" \
+            -e HF_TOKEN="${{ secrets.HF_TOKEN }}" \
+            -v "${{ github.workspace }}/robotics-test-infra/baselines:/app/baselines" \
+            robotics-test-infra:ci \
+            python scripts/update_baseline.py \
+              --num_episodes "${{ github.event.inputs.num_episodes }}" \
+              --max_episode_steps "${{ github.event.inputs.max_episode_steps }}" \
+              --seed 100000 --render_backend osmesa
+
+      - name: Commit baseline
+        run: |
+          cd robotics-test-infra
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet baselines/baseline_metrics.json; then
+            echo "baseline unchanged"; exit 0
+          fi
+          git add baselines/baseline_metrics.json
+          git commit -m "chore: update regression baseline (${{ github.event.inputs.num_episodes }} episodes) [skip ci]"
+          git push

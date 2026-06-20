@@ -1,0 +1,12 @@
+# Build context is robotics-test-infra/. Keep the image lean and the cache stable.
+artifacts/
+results/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.mp4
+*.log
+ARCHITECTURE.md
+TESTING_PHILOSOPHY.md

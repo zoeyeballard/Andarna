@@ -1,0 +1,46 @@
+# Project 3 · Tier 1 — Fast Checks
+# Lint + type-check + unit tests. No Docker, no MuJoCo, no checkpoint. Pure code
+# quality, < 3 min. Runs on every push and PR that touches the project.
+name: "Project 3 · Tier 1 — Fast Checks"
+
+on:
+  push:
+    paths:
+      - "robotics-test-infra/**"
+      - ".github/workflows/proj3_fast_checks.yml"
+  pull_request:
+    paths:
+      - "robotics-test-infra/**"
+      - ".github/workflows/proj3_fast_checks.yml"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: robotics-test-infra
+
+jobs:
+  fast-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: robotics-test-infra/pyproject.toml
+
+      - name: Install light deps (no MuJoCo)
+        run: pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check src tests scripts
+
+      - name: Type check (mypy)
+        run: mypy src
+
+      - name: Unit tests
+        run: pytest tests/unit -v --tb=short

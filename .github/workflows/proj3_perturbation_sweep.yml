@@ -1,0 +1,43 @@
+# Project 3 · Tier 4 (FUTURE) — Perturbation Sweep — SCAFFOLDING ONLY
+#
+# NOT ACTIVE. This is the placeholder for integrating Project 2's sensor-perturbation
+# robustness study (openvla-robustness/) into the CI pyramid. Unlike Tiers 1-3, the
+# perturbation sweep evaluates a 7B VLA under degraded observations and REQUIRES A GPU,
+# so it cannot run on GitHub's free CPU runners.
+#
+# When activated it would:
+#   - run on a SELF-HOSTED GPU runner (or a Colab/RunPod-backed job), not ubuntu-latest
+#   - sweep degradation axes (noise / latency / frame-drop / resolution)
+#   - produce success-rate-vs-severity curves and gate on the degradation "cliff"
+#   - run on a schedule (nightly/weekly), never per-PR (too expensive)
+#
+# It is `workflow_dispatch`-only and the job is guarded off, so it never executes until
+# a maintainer wires up a GPU runner and flips `enabled`. See src/perturbation_tests.py
+# and ARCHITECTURE.md § "Extending the framework".
+name: "Project 3 · Tier 4 (FUTURE) — Perturbation Sweep"
+
+on:
+  workflow_dispatch:
+    inputs:
+      enabled:
+        description: "Set true ONLY when a GPU runner is configured"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  perturbation-sweep:
+    # Hard-guarded: stays a no-op until both the input and a real GPU runner exist.
+    if: ${{ inputs.enabled == true }}
+    # runs-on: [self-hosted, gpu]   # <-- uncomment when a GPU runner is registered
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Placeholder
+        run: |
+          echo "Perturbation sweep is scaffolding only — see src/perturbation_tests.py."
+          echo "Wire up a GPU runner and Project 2's degradations.py before enabling."
+          exit 1

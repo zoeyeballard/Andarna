@@ -1,0 +1,108 @@
+# Project 3 · Tier 2 — Simulation Validation
+# Builds the Docker sim image and runs N evaluation episodes in MuJoCo (CPU, OSMesa),
+# uploads non-success episode videos, posts a metrics PR comment, and gates the build
+# on the configured thresholds. < 15 min with layer caching.
+#
+# Requires (set once, see ARCHITECTURE.md "CI setup"):
+#   - repo variable  RTI_CHECKPOINT_PATH = the Hugging Face Hub id of the ACT checkpoint
+#   - repo secret    HF_TOKEN            = HF token (only if the model repo is private)
+# Until RTI_CHECKPOINT_PATH is set the job no-ops with a warning (keeps the repo green).
+name: "Project 3 · Tier 2 — Simulation Validation"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "robotics-test-infra/**"
+      - ".github/workflows/proj3_sim_validation.yml"
+  workflow_dispatch:
+    inputs:
+      num_episodes:
+        description: "Episodes to evaluate"
+        default: "5"
+      max_episode_steps:
+        description: "Per-episode step cap"
+        default: "400"
+  schedule:
+    - cron: "0 7 * * *" # nightly 07:00 UTC
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  sim-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gate on checkpoint configuration
+        id: gate
+        run: |
+          if [ -z "${{ vars.RTI_CHECKPOINT_PATH }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::RTI_CHECKPOINT_PATH not set — skipping sim validation. Upload the ACT checkpoint to the HF Hub and set the repo variable to enable Tier 2/3."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.gate.outputs.configured == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build sim image (cached)
+        if: steps.gate.outputs.configured == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: robotics-test-infra
+          load: true
+          tags: robotics-test-infra:ci
+          cache-from: type=gha,scope=proj3-sim
+          cache-to: type=gha,mode=max,scope=proj3-sim
+
+      - name: Run simulation evaluation
+        id: eval
+        if: steps.gate.outputs.configured == 'true'
+        run: |
+          mkdir -p robotics-test-infra/artifacts
+          docker run --rm \
+            -e RTI_CHECKPOINT_PATH="${{ vars.RTI_CHECKPOINT_PATH }}" \
+            -e HF_TOKEN="${{ secrets.HF_TOKEN }}" \
+            -e RTI_NUM_EPISODES="${{ github.event.inputs.num_episodes || '5' }}" \
+            -e RTI_MAX_EPISODE_STEPS="${{ github.event.inputs.max_episode_steps || '400' }}" \
+            -e RTI_SEED=100000 \
+            -v "${{ github.workspace }}/robotics-test-infra/artifacts:/app/artifacts" \
+            robotics-test-infra:ci \
+            python scripts/run_evaluation.py --output_dir artifacts --fail_on_threshold
+
+      - name: Upload artifacts (results + videos)
+        if: always() && steps.gate.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sim-validation-${{ github.run_id }}
+          path: |
+            robotics-test-infra/artifacts/results.json
+            robotics-test-infra/artifacts/validation_comment.md
+            robotics-test-infra/artifacts/videos/
+          if-no-files-found: warn
+
+      - name: Post validation PR comment
+        if: always() && steps.gate.outputs.configured == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'robotics-test-infra/artifacts/validation_comment.md';
+            if (!fs.existsSync(path)) { core.warning('no validation_comment.md'); return; }
+            const marker = '<!-- proj3-sim-validation -->';
+            const body = marker + '\n' + fs.readFileSync(path, 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.data.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
