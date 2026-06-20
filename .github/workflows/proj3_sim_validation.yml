@@ -22,7 +22,7 @@ on:
         default: "5"
       max_episode_steps:
         description: "Per-episode step cap"
-        default: "200"
+        default: "400"
   schedule:
     - cron: "0 7 * * *" # nightly 07:00 UTC
 
@@ -70,7 +70,7 @@ jobs:
             -e RTI_CHECKPOINT_PATH="${{ vars.RTI_CHECKPOINT_PATH }}" \
             -e HF_TOKEN="${{ secrets.HF_TOKEN }}" \
             -e RTI_NUM_EPISODES="${{ github.event.inputs.num_episodes || '5' }}" \
-            -e RTI_MAX_EPISODE_STEPS="${{ github.event.inputs.max_episode_steps || '200' }}" \
+            -e RTI_MAX_EPISODE_STEPS="${{ github.event.inputs.max_episode_steps || '400' }}" \
             -e RTI_SEED=100000 \
             -v "${{ github.workspace }}/robotics-test-infra/artifacts:/app/artifacts" \
             robotics-test-infra:ci \

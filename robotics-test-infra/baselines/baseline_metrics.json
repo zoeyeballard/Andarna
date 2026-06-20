@@ -1,27 +1,27 @@
 {
-  "timestamp": "2026-06-18T21:06:32+00:00",
-  "checkpoint": "../outputs/train/act_aloha_cube/checkpoints/000400/pretrained_model",
+  "timestamp": "2026-06-20T01:05:50+00:00",
+  "checkpoint": "zoeyeballard/act-aloha-cube",
   "env_type": "aloha",
   "task": "AlohaTransferCube-v0",
   "seed": 100000,
-  "max_episode_steps": 200,
-  "num_episodes": 5,
-  "num_success": 0,
-  "success_rate": 0.0,
-  "avg_episode_length": 200.0,
-  "consistency_score": 0.0,
-  "inference_latency_mean_ms": 7.421346603849088,
-  "inference_latency_p50_ms": 0.7890265005698893,
-  "inference_latency_p95_ms": 2.576986599888186,
-  "inference_latency_p99_ms": 15.103578767882574,
-  "inference_latency_max_ms": 1674.5384940004442,
-  "throughput_eps_per_min": 1.4438957017677958,
-  "timeouts": 5,
+  "max_episode_steps": 400,
+  "num_episodes": 50,
+  "num_success": 33,
+  "success_rate": 0.66,
+  "avg_episode_length": 330.18,
+  "consistency_score": 54.84548841974151,
+  "inference_latency_mean_ms": 2.669166734619456,
+  "inference_latency_p50_ms": 0.7226000016089529,
+  "inference_latency_p95_ms": 0.8497770002577454,
+  "inference_latency_p99_ms": 172.689136241097,
+  "inference_latency_max_ms": 222.17583800374996,
+  "throughput_eps_per_min": 1.5179178480909108,
+  "timeouts": 0,
   "per_task_results": {
     "AlohaTransferCube-v0": {
-      "num_episodes": 5,
-      "success_rate": 0.0,
-      "avg_episode_length": 200.0
+      "num_episodes": 50,
+      "success_rate": 0.66,
+      "avg_episode_length": 330.18
     }
   }
 }

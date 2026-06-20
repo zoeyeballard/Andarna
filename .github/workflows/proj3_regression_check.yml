@@ -21,7 +21,7 @@ on:
         default: "50"
       max_episode_steps:
         description: "Per-episode step cap"
-        default: "200"
+        default: "400"
 
 permissions:
   contents: read
@@ -70,7 +70,7 @@ jobs:
             -e RTI_CHECKPOINT_PATH="${{ vars.RTI_CHECKPOINT_PATH }}" \
             -e HF_TOKEN="${{ secrets.HF_TOKEN }}" \
             -e RTI_NUM_EPISODES=5 \
-            -e RTI_MAX_EPISODE_STEPS=200 \
+            -e RTI_MAX_EPISODE_STEPS=400 \
             -e RTI_SEED=100000 \
             -v "${{ github.workspace }}/robotics-test-infra/artifacts:/app/artifacts" \
             robotics-test-infra:ci \

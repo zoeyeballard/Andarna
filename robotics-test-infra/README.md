@@ -26,10 +26,12 @@ model: deterministic evaluation, latency budgets, regression gates, reproducible
 environments, and a clear pass/fail signal on every change. That infrastructure —
 not the policy — is the deliverable here.
 
-The Project 1 ACT policy is deliberately **undertrained** (a few hundred CPU steps);
-it approaches the cube but usually overshoots. That's a feature: a policy with a
-non-trivial, noisy success rate gives the regression detector something real to
-track, where a perfect policy would not.
+The Project 1 ACT policy was retrained to convergence (100k steps on an A10G) and now
+earns a **real, non-saturated success rate (~66% over 50 episodes)**. That middle band
+is exactly what a regression detector wants: high enough to be a meaningful signal, far
+enough from 100% that a genuine degradation has room to show up. (An earlier
+few-hundred-step CPU checkpoint scored 0% — useful only as a "does the pipeline run"
+placeholder; the gate now tracks a policy that actually works.)
 
 ## The three CI tiers
 
@@ -66,24 +68,30 @@ robotics-test-infra/
 ## Status / results
 
 The pipeline is live: **Tier 1 runs green on GitHub** on every push. Tiers 2/3 build
-the Docker sim image and run real MuJoCo episodes; they activate once the checkpoint is
-configured (see *CI setup* below) and stay green-by-no-op until then.
+the Docker sim image and run real MuJoCo episodes; they are now **active** —
+`RTI_CHECKPOINT_PATH` points at the retrained ACT policy on the HF Hub
+([`zoeyeballard/act-aloha-cube`](https://huggingface.co/zoeyeballard/act-aloha-cube)),
+public so no `HF_TOKEN` secret is needed.
 
-Measured against the Project-1 ACT checkpoint (5 episodes × 200 steps, seed 100000):
+Committed baseline (`baselines/baseline_metrics.json`) — 50 episodes × 400 steps,
+seed 100000, OSMesa render, CPU (the canonical CI environment):
 
 | Metric | Value | Note |
 |--------|-------|------|
-| Success rate | **0.00** (0/5) | undertrained policy — genuinely doesn't grasp yet |
-| Avg episode length | 200 steps | all time out at the cap |
-| Inference latency p95 | **~2.6 ms** | steady-state (queue replay) — the gated budget |
-| Inference latency max | **~1.3 s** | periodic chunk-boundary forward pass (WCET) |
-| Loop breakdown | inference ≈ **4.6%** | MuJoCo step+render dominates (~180 ms/step) |
-| Determinism | ✅ identical | same seed → byte-identical trajectory (50 steps) |
+| Success rate | **0.66** (33/50) | retrained ACT (100k steps); non-saturated by design |
+| Avg episode length | **330 steps** | task completes in ~280–330; 400-step env horizon |
+| Inference latency p95 | **~0.85 ms** | steady-state (action-chunk queue replay) — the gated budget |
+| Inference latency max | **~222 ms** | periodic chunk-boundary forward pass (WCET) |
+| Loop breakdown | inference ≪ sim step | MuJoCo step+render dominates wall-clock |
+| Determinism | ✅ identical | same seed → byte-identical trajectory |
 
-The 0% success is intentional and honestly reported: we **don't gate on task success**
-yet (`success_rate_threshold = 0.0`). The binding, passing gates are the **p95 latency
-budget** and the **regression check** — which is how early-stage robotics CI actually
-looks. See [ARCHITECTURE.md](ARCHITECTURE.md) for the rationale.
+Because eval is **seed-locked**, the per-PR check (5 episodes, same seeds) is
+deterministic — the Tier-2 comment reports **0.80 (4/5)** for these first five seeds,
+and Tier-3 compares it to the 50-episode baseline (0.66) within a 0.10 tolerance. We
+now **gate on task success** (`success_rate_threshold = 0.4`, a conservative floor well
+below the ~0.66 operating point); the **p95 latency budget** and the **regression
+check** remain the primary gates. See [ARCHITECTURE.md](ARCHITECTURE.md) for the
+rationale.
 
 ## Quick start (local, CPU)
 
