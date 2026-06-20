@@ -17,8 +17,10 @@
 FROM python:3.12-slim
 
 # --- system libs for headless MuJoCo (OSMesa software GL) + video encoding ---
+# libgl1-mesa-glx was removed in Debian trixie (python:3.12-slim's base); libgl1 is the
+# modern GL loader package. Headless OSMesa rendering needs libosmesa6 + the GL loader.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libgl1-mesa-glx \
+        libgl1 \
         libosmesa6 \
         libglfw3 \
         libgl1-mesa-dri \
