@@ -20,7 +20,7 @@ dependencies = [
 # --- "Heavy" simulation stack (Tier 2/3, run inside Docker) ---
 # Pinned to the versions validated in Project 1 (CPU-only, MuJoCo 3.8).
 sim = [
-    "lerobot==0.5.1",
+    "lerobot==0.4.4",  # the version the published ACT checkpoint was trained+validated with
     "gym-aloha==0.1.4",
     "mujoco==3.8.1",
     "gymnasium==1.3.0",

@@ -19,6 +19,9 @@ FROM python:3.12-slim
 # --- system libs for headless MuJoCo (OSMesa software GL) + video encoding ---
 # libgl1-mesa-glx was removed in Debian trixie (python:3.12-slim's base); libgl1 is the
 # modern GL loader package. Headless OSMesa rendering needs libosmesa6 + the GL loader.
+# build-essential + python3-dev + linux-libc-dev: LeRobot pulls evdev (a teleop dep),
+# which is sdist-only and compiles a C extension against <linux/input.h> — the slim
+# image ships no compiler or kernel headers, so the wheel build fails without these.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libgl1 \
         libosmesa6 \
@@ -26,6 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libgl1-mesa-dri \
         ffmpeg \
         git \
+        build-essential \
+        python3-dev \
+        linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Headless software rendering — no GPU, no display required.
@@ -38,9 +44,13 @@ ENV MUJOCO_GL=osmesa \
 
 WORKDIR /app
 
-# Install CPU-only torch FIRST so the heavy sim deps resolve against it instead of
-# pulling multi-GB CUDA wheels (the Project-1 lesson).
-RUN pip install --index-url https://download.pytorch.org/whl/cpu "torch==2.10.0"
+# Install CPU-only torch + torchvision FIRST so the heavy sim deps resolve against them
+# instead of pulling multi-GB CUDA wheels (the Project-1 lesson). torchvision MUST come
+# from the same CPU index as torch — otherwise pip pulls the PyPI (CUDA-ABI) torchvision
+# and its compiled ops fail to bind ("operator torchvision::nms does not exist") the
+# moment lerobot imports torchvision.transforms. 2.10.0 ↔ 0.25.0 is the matching pair.
+RUN pip install --index-url https://download.pytorch.org/whl/cpu \
+        "torch==2.10.0" "torchvision==0.25.0"
 
 # Dependency install is its own layer (cached unless pyproject changes).
 COPY pyproject.toml README.md ./
