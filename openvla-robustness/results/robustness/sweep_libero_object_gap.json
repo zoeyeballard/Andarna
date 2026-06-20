@@ -1,0 +1,84 @@
+{
+  "task_suite": "libero_object",
+  "axis": "gap",
+  "points": [
+    {
+      "axis": "gap",
+      "level": 0.0,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 155.57142857142858,
+      "run_name": "libero_object_gap_0",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "gap",
+      "level": 0.05,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 153.14285714285714,
+      "run_name": "libero_object_gap_0p05",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.05,
+      "delay": 0
+    },
+    {
+      "axis": "gap",
+      "level": 0.1,
+      "success_rate": 0.65,
+      "n_success": 13,
+      "n_trials": 20,
+      "mean_success_length": 143.76923076923077,
+      "run_name": "libero_object_gap_0p1",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.1,
+      "delay": 0
+    },
+    {
+      "axis": "gap",
+      "level": 0.2,
+      "success_rate": 0.6,
+      "n_success": 12,
+      "n_trials": 20,
+      "mean_success_length": 162.33333333333334,
+      "run_name": "libero_object_gap_0p2",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.2,
+      "delay": 0
+    },
+    {
+      "axis": "gap",
+      "level": 0.3,
+      "success_rate": 0.65,
+      "n_success": 13,
+      "n_trials": 20,
+      "mean_success_length": 148.76923076923077,
+      "run_name": "libero_object_gap_0p3",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.3,
+      "delay": 0
+    },
+    {
+      "axis": "gap",
+      "level": 0.5,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 170.28571428571428,
+      "run_name": "libero_object_gap_0p5",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.5,
+      "delay": 0
+    }
+  ]
+}

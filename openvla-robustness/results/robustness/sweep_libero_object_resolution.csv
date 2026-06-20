@@ -1,0 +1,5 @@
+axis,level,success_rate,n_success,n_trials,mean_success_length,run_name,noise_sigma,downscale,gap_rate,delay
+resolution,1,0.7,14,20,155.57142857142858,libero_object_resolution_1,0.0,1,0.0,0
+resolution,2,0.15,3,20,148.0,libero_object_resolution_2,0.0,2,0.0,0
+resolution,4,0.0,0,20,,libero_object_resolution_4,0.0,4,0.0,0
+resolution,8,0.0,0,20,,libero_object_resolution_8,0.0,8,0.0,0

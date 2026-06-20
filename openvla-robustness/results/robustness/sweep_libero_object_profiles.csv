@@ -1,0 +1,6 @@
+axis,level,success_rate,n_success,n_trials,mean_success_length,run_name,noise_sigma,downscale,gap_rate,delay
+profile,clean,0.7,14,20,155.57142857142858,libero_object_profile_clean,0.0,1,0.0,0
+profile,lab,0.9,18,20,157.5,libero_object_profile_lab,0.02,1,0.05,1
+profile,field,0.55,11,20,190.54545454545453,libero_object_profile_field,0.05,1,0.1,2
+profile,challenging_field,0.2,4,20,252.25,libero_object_profile_challenging_field,0.1,1,0.2,3
+profile,high_stress_field,0.0,0,20,,libero_object_profile_high_stress_field,0.15,1,0.3,5

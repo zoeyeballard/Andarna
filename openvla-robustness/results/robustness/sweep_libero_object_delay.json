@@ -1,0 +1,97 @@
+{
+  "task_suite": "libero_object",
+  "axis": "delay",
+  "points": [
+    {
+      "axis": "delay",
+      "level": 0,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 155.57142857142858,
+      "run_name": "libero_object_delay_0",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "delay",
+      "level": 1,
+      "success_rate": 0.65,
+      "n_success": 13,
+      "n_trials": 20,
+      "mean_success_length": 165.92307692307693,
+      "run_name": "libero_object_delay_1",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 1
+    },
+    {
+      "axis": "delay",
+      "level": 2,
+      "success_rate": 0.55,
+      "n_success": 11,
+      "n_trials": 20,
+      "mean_success_length": 178.0,
+      "run_name": "libero_object_delay_2",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 2
+    },
+    {
+      "axis": "delay",
+      "level": 3,
+      "success_rate": 0.35,
+      "n_success": 7,
+      "n_trials": 20,
+      "mean_success_length": 197.57142857142858,
+      "run_name": "libero_object_delay_3",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 3
+    },
+    {
+      "axis": "delay",
+      "level": 5,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_delay_5",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 5
+    },
+    {
+      "axis": "delay",
+      "level": 8,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_delay_8",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 8
+    },
+    {
+      "axis": "delay",
+      "level": 10,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_delay_10",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 10
+    }
+  ]
+}

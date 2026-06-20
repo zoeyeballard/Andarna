@@ -1,0 +1,9 @@
+axis,level,success_rate,n_success,n_trials,mean_success_length,run_name,noise_sigma,downscale,gap_rate,delay
+noise,0.0,0.7,14,20,155.57142857142858,libero_object_noise_0,0.0,1,0.0,0
+noise,0.01,0.7,14,20,155.57142857142858,libero_object_noise_0p01,0.01,1,0.0,0
+noise,0.02,0.7,14,20,148.0,libero_object_noise_0p02,0.02,1,0.0,0
+noise,0.05,0.65,13,20,154.92307692307693,libero_object_noise_0p05,0.05,1,0.0,0
+noise,0.1,0.45,9,20,195.33333333333334,libero_object_noise_0p1,0.1,1,0.0,0
+noise,0.15,0.0,0,20,,libero_object_noise_0p15,0.15,1,0.0,0
+noise,0.2,0.0,0,20,,libero_object_noise_0p2,0.2,1,0.0,0
+noise,0.3,0.0,0,20,,libero_object_noise_0p3,0.3,1,0.0,0

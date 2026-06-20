@@ -1,0 +1,58 @@
+{
+  "task_suite": "libero_object",
+  "axis": "resolution",
+  "points": [
+    {
+      "axis": "resolution",
+      "level": 1,
+      "success_rate": 0.7,
+      "n_success": 14,
+      "n_trials": 20,
+      "mean_success_length": 155.57142857142858,
+      "run_name": "libero_object_resolution_1",
+      "noise_sigma": 0.0,
+      "downscale": 1,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "resolution",
+      "level": 2,
+      "success_rate": 0.15,
+      "n_success": 3,
+      "n_trials": 20,
+      "mean_success_length": 148.0,
+      "run_name": "libero_object_resolution_2",
+      "noise_sigma": 0.0,
+      "downscale": 2,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "resolution",
+      "level": 4,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_resolution_4",
+      "noise_sigma": 0.0,
+      "downscale": 4,
+      "gap_rate": 0.0,
+      "delay": 0
+    },
+    {
+      "axis": "resolution",
+      "level": 8,
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_trials": 20,
+      "mean_success_length": null,
+      "run_name": "libero_object_resolution_8",
+      "noise_sigma": 0.0,
+      "downscale": 8,
+      "gap_rate": 0.0,
+      "delay": 0
+    }
+  ]
+}
