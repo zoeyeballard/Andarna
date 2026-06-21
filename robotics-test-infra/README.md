@@ -33,13 +33,14 @@ enough from 100% that a genuine degradation has room to show up. (An earlier
 few-hundred-step CPU checkpoint scored 0% — useful only as a "does the pipeline run"
 placeholder; the gate now tracks a policy that actually works.)
 
-## The three CI tiers
+## The CI tiers
 
 | Tier | Workflow | Triggers | Budget | What it catches |
 |------|----------|----------|--------|-----------------|
 | **1 — Fast checks** | `fast_checks` | every push & PR | < 3 min | lint / type / unit-test breakage. No sim. |
 | **2 — Sim validation** | `sim_validation` | PRs to `main`, manual, nightly | < 15 min | policy/eval breakage; success rate & latency vs. thresholds. Runs in Docker. |
 | **3 — Regression check** | `regression_check` | PRs to `main` | < 15 min | silent metric drift vs. a committed baseline. Fails the build on regression. |
+| **4 — Perturbation sweep** | `perturbation_sweep` | manual, weekly | < 60 min | robustness drift — maps the success-rate cliff under degraded observations (the Project 2 bridge). CPU. |
 
 ## Repo layout
 
