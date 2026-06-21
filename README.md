@@ -124,11 +124,11 @@ slower than BF16, and INT8 was worse than INT4 on both axes (the known OpenVLA a
 memory (4.7 GB), never for speed; avoid INT8. Latency (~2.8 Hz) — not memory — is the binding
 constraint for a real control loop.
 
-**Pending:** roofline analysis; full-suite behavioral eval (for statistical significance).
+**Pending:** full-suite behavioral eval (for statistical significance); final report (Phase 14).
 
 ## Status
 
-Phases 0–6, 8–13 complete (through summary figures). See [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
+Phases 0–6, 8–13 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
 Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation, torch.compile,
-batch scaling, memory stability, reproducibility, roofline). See
+batch scaling, memory stability, reproducibility, roofline, summary figures). See
 [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
