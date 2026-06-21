@@ -222,6 +222,27 @@ batch-1-locked, real end-to-end throughput does **not** scale with batch — it 
 batch-1 rate (~2.8 inferences/s). Batching would only help a hypothetical multi-robot/parallel-sim
 server *and* only after the model gained batched-decode support.
 
+## Phase 10 — Memory stability (leak check)
+*Script:* [`profiling/memory_profiler.py`](profiling/memory_profiler.py) · *Data:*
+[`results/memory/memory_stability.json`](results/memory/memory_stability.json) · *Figure:*
+[`figures/memory_stability.png`](figures/memory_stability.png)
+
+500 inference iterations, GPU memory logged every 50 steps:
+
+| | value (constant across all 500 iters) |
+|---|---|
+| allocated | 15,138.1 MB |
+| reserved | 15,531.5 MB |
+| peak allocated | 15,476.0 MB |
+| **allocated drift over run** | **+0.0 MB** |
+| **peak growth after warmup** | **+0.0 MB** |
+
+**Read:** memory is byte-identical at every checkpoint — **leak-free, peak fully plateaued**. The
+CUDA caching allocator reuses the same blocks each step and the KV cache is released after every
+`predict_action`, so a long-running control session won't creep toward OOM. This is the
+determinism property that matters for an embedded deployment (predictable, bounded memory →
+no mid-task OOM). See the figure for the flat memory-over-time curves.
+
 ---
 
 ## Deployment recommendations

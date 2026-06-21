@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "model_id": "openvla/openvla-7b-finetuned-libero-object",
+    "precision": "bfloat16",
+    "iters": 500,
+    "warmup": 20,
+    "log_every": 50,
+    "device_name": "NVIDIA A10G",
+    "torch_version": "2.2.0+cu121",
+    "python_version": "3.10.12",
+    "timestamp_utc": "2026-06-21T19:29:16.843831+00:00"
+  },
+  "samples": [
+    {
+      "iter": 0,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 50,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 100,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 150,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 200,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 250,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 300,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 350,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 400,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 450,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    },
+    {
+      "iter": 500,
+      "allocated_mb": 15138.1,
+      "reserved_mb": 15531.5,
+      "peak_mb": 15476.0
+    }
+  ],
+  "verdict": {
+    "allocated_drift_mb_over_run": 0.0,
+    "allocated_drift_mb_per_100_iters": 0.0,
+    "peak_growth_mb_after_first_log": 0.0,
+    "leak_free": true
+  }
+}
