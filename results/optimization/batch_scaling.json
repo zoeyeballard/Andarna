@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "model_id": "openvla/openvla-7b-finetuned-libero-object",
+    "precision": "bfloat16",
+    "device_name": "NVIDIA A10G",
+    "torch_version": "2.2.0+cu121",
+    "python_version": "3.10.12",
+    "warmup": 10,
+    "iters": 30,
+    "timestamp_utc": "2026-06-21T19:20:50.315263+00:00"
+  },
+  "generation_batch_probe": {
+    "batched_generation_supported": false,
+    "error": "RuntimeError: Sizes of tensors must match except in dimension 1. Expected size 2 but got size 1 for tensor number 1 in the list."
+  },
+  "prefill_forward_sweep": {
+    "1": {
+      "batch_size": 1,
+      "latency_per_call_ms": 143.537,
+      "latency_per_item_ms": 143.537,
+      "throughput_items_per_s": 6.97,
+      "peak_mem_mb": 15203.7
+    },
+    "2": {
+      "batch_size": 2,
+      "latency_per_call_ms": 182.98,
+      "latency_per_item_ms": 91.49,
+      "throughput_items_per_s": 10.93,
+      "peak_mem_mb": 15265.5
+    },
+    "4": {
+      "batch_size": 4,
+      "latency_per_call_ms": 338.501,
+      "latency_per_item_ms": 84.625,
+      "throughput_items_per_s": 11.82,
+      "peak_mem_mb": 15390.1
+    },
+    "8": {
+      "batch_size": 8,
+      "latency_per_call_ms": 661.536,
+      "latency_per_item_ms": 82.692,
+      "throughput_items_per_s": 12.09,
+      "peak_mem_mb": 15641.0
+    }
+  }
+}

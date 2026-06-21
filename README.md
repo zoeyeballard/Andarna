@@ -114,6 +114,7 @@ slower than BF16, and INT8 was worse than INT4 on both axes (the known OpenVLA a
 | 6b | Gripper-flip test | **Refuted** — error is in translation deltas (`dz` worst), not the gripper | [json](results/quantization/action_dim_breakdown.json) |
 | 6c | LIBERO success (n=10) | BF16 80% · FP16 70% · INT4 60% (monotonic but within noise) | [json](results/behavioral/libero_success.json) |
 | 8 | torch.compile (reduce-overhead) | **errors** on the LLM attention mask (dynamic shape) — no speedup; eager baseline 359 ms | [json](results/optimization/torch_compile.json) |
+| 9 | Batch-size scaling | generation **batch-1-locked** (model assert); prefill forward scales 7.0→12.1 items/s (B1→8), saturates by B=2 | [json](results/optimization/batch_scaling.json) |
 
 **Deployment takeaway:** run BF16/FP16 if memory allows; use INT4 only to *fit* on constrained
 memory (4.7 GB), never for speed; avoid INT8. Latency (~2.8 Hz) — not memory — is the binding
@@ -123,6 +124,6 @@ constraint for a real control loop.
 
 ## Status
 
-Phases 0–6 + 8 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
+Phases 0–6, 8, 9 complete. See [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
 Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation, torch.compile).
 See [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.

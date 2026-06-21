@@ -195,6 +195,33 @@ version with `StaticCache` + compile support for generation, or `suppress_errors
 back to eager (which yields no speedup). Given inference is GEMM-bound on already-fast tensor-core
 kernels (Phase 3), compile upside would be limited regardless.
 
+## Phase 9 — Batch-size scaling
+*Script:* [`optimization/batch_scaling_test.py`](optimization/batch_scaling_test.py) · *Data:*
+[`results/optimization/batch_scaling.json`](results/optimization/batch_scaling.json)
+
+**Finding A — end-to-end action generation is batch-1-locked.** OpenVLA's modeling code asserts
+`input_ids.shape[0] == 1` in the cached-decode path; a batched `predict_action` errors out. So a
+single deployed policy *cannot* batch its inference out of the box.
+
+**Finding B — the prefill forward (vision + projector + LLM prefill) does batch.** Sweeping the
+batchable forward (the B=1 number, 143.5 ms, matches Phase 2's vision+projector+prefill = 144 ms):
+
+| Batch | ms/call | ms/item | throughput (items/s) | peak mem |
+|---:|---:|---:|---:|---:|
+| 1 | 143.5 | 143.5 | 6.97 | 15,204 MB |
+| 2 | 183.0 | 91.5 | 10.93 | 15,266 MB |
+| 4 | 338.5 | 84.6 | 11.82 | 15,390 MB |
+| 8 | 661.5 | 82.7 | 12.09 | 15,641 MB |
+
+**Read:** per-item latency drops 143→83 ms (throughput 7.0→12.1 items/s, ~1.7×) but **saturates
+by B=2** — almost all the gain is B=1→2. The prefill GEMMs are already near compute-bound at
+batch 1 (≈280-token sequence), so batching only amortizes fixed launch/overhead, then flatlines.
+Memory barely moves (+440 MB at B=8) — the 7B weights dominate, so memory is *not* the batch limit;
+compute saturation is. **Net deployment reality:** since decode (59% of latency, Phase 2) is
+batch-1-locked, real end-to-end throughput does **not** scale with batch — it stays pinned at the
+batch-1 rate (~2.8 inferences/s). Batching would only help a hypothetical multi-robot/parallel-sim
+server *and* only after the model gained batched-decode support.
+
 ---
 
 ## Deployment recommendations
