@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "model_id": "openvla/openvla-7b-finetuned-libero-object",
+    "precision": "bfloat16",
+    "compile_mode": "reduce-overhead",
+    "device_name": "NVIDIA A10G",
+    "torch_version": "2.2.0+cu121",
+    "python_version": "3.10.12",
+    "timestamp_utc": "2026-06-21T17:07:19.565244+00:00"
+  },
+  "baseline_uncompiled": {
+    "mean_ms": 359.327,
+    "p50_ms": 359.235,
+    "p95_ms": 360.297,
+    "min_ms": 358.35,
+    "n": 50
+  },
+  "compile": {
+    "error": "TorchRuntimeError: Failed running call_function <built-in function scaled_dot_product_attention>(*(FakeTensor(..., device='cuda:0', size=(1, 32, 281, 128), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(1, 32, 281, 128), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(1, 32, 281, 128), dtype=torch.bfloat16)), **{'attn_mask': FakeTensor(..., device='cuda:0', size=(1, 1, 281, 280), dtype=torch.bfloat16), 'dropout_p': 0.0, 'is_causal': False}):\nexpand: attempting to expand a dimension of length 280!\n\nfrom user code:\n   File \"/home/ubuntu/.cache/huggingface/modules/transformers_modules/openvla/openvla-7b/47a0ec7fc4ec123775a391911046cf33cf9ed83f/modeling_prismatic.py\", line 404, in forward\n    language_model_output = self.language_model(\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1520, in _call_impl\n    return forward_call(*args, **kwargs)\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py\", line 1208, in forward\n    outputs = self.model(\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1520, in _call_impl\n    return forward_call(*args, **kwargs)\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py\", line 1018, in forward\n    layer_outputs = decoder_layer(\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1520, in _call_impl\n    return forward_call(*args, **kwargs)\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py\", line 741, in forward\n    hidden_states, self_attn_weights, present_key_value = self.self_attn(\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1520, in _call_impl\n    return forward_call(*args, **kwargs)\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py\", line 671, in forward\n    attn_output = torch.nn.functional.scaled_dot_product_attention(\n\nSet TORCH_LOGS=\"+dynamo\" and TORCHDYNAMO_VERBOSE=1 for more information\n\n\nYou can suppress this exception and fall back to eager by setting:\n    import torch._dynamo\n    torch._dynamo.config.suppress_errors = True\n",
+    "traceback_tail": "  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1520, in _call_impl\n    return forward_call(*args, **kwargs)\n  File \"/home/ubuntu/repositories/personal/Andarna-p4/.venv/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py\", line 671, in forward\n    attn_output = torch.nn.functional.scaled_dot_product_attention(\n\nSet TORCH_LOGS=\"+dynamo\" and TORCHDYNAMO_VERBOSE=1 for more information\n\n\nYou can suppress this exception and fall back to eager by setting:\n    import torch._dynamo\n    torch._dynamo.config.suppress_errors = True\n\n",
+    "dynamo": {
+      "recompiles": 0,
+      "graph_breaks": 0,
+      "frames_compiled": 0,
+      "top_graph_break_reasons": {}
+    }
+  }
+}

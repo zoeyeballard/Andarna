@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "model_id": "openvla/openvla-7b-finetuned-libero-object",
+    "device_name": "NVIDIA A10G",
+    "torch_version": "2.2.0+cu121",
+    "python_version": "3.10.12",
+    "warmup_steps": 20,
+    "timed_steps": 100,
+    "timestamp_utc": "2026-06-21T07:46:12.936233+00:00"
+  },
+  "results": {
+    "bf16": {
+      "status": "ok",
+      "precision": "bf16",
+      "input_dtype": "bfloat16",
+      "load_seconds": 10.68,
+      "latency": {
+        "mean_ms": 358.878,
+        "p50_ms": 358.627,
+        "p95_ms": 360.646,
+        "max_ms": 368.847,
+        "min_ms": 357.35,
+        "std_ms": 1.488
+      },
+      "peak_mem_allocated_mb": 15476.0,
+      "peak_mem_reserved_mb": 15531.5
+    },
+    "fp16": {
+      "status": "ok",
+      "precision": "fp16",
+      "input_dtype": "float16",
+      "load_seconds": 22.93,
+      "latency": {
+        "mean_ms": 359.894,
+        "p50_ms": 359.137,
+        "p95_ms": 367.092,
+        "max_ms": 370.606,
+        "min_ms": 357.844,
+        "std_ms": 2.661
+      },
+      "peak_mem_allocated_mb": 15476.0,
+      "peak_mem_reserved_mb": 15531.5
+    },
+    "int8": {
+      "status": "ok",
+      "precision": "int8",
+      "input_dtype": "float16",
+      "load_seconds": 36.12,
+      "latency": {
+        "mean_ms": 1365.107,
+        "p50_ms": 1368.285,
+        "p95_ms": 1397.873,
+        "max_ms": 1428.419,
+        "min_ms": 1321.067,
+        "std_ms": 24.054
+      },
+      "peak_mem_allocated_mb": 8456.0,
+      "peak_mem_reserved_mb": 8560.6
+    },
+    "int4": {
+      "status": "ok",
+      "precision": "int4",
+      "input_dtype": "bfloat16",
+      "load_seconds": 12.01,
+      "latency": {
+        "mean_ms": 572.081,
+        "p50_ms": 570.441,
+        "p95_ms": 586.223,
+        "max_ms": 591.94,
+        "min_ms": 561.818,
+        "std_ms": 7.211
+      },
+      "peak_mem_allocated_mb": 4729.5,
+      "peak_mem_reserved_mb": 4865.4
+    }
+  }
+}
