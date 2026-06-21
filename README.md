@@ -123,6 +123,6 @@ constraint for a real control loop.
 
 ## Status
 
-Phases 0–6 + 8 complete. See [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
-Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation). See
-[PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
+Phases 0–6 + 8 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
+Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation, torch.compile).
+See [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
