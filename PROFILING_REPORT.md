@@ -270,6 +270,54 @@ that every single-run number in this report is trustworthy, and (with Phases 1 +
 OpenVLA inference on the A10G is deterministic in **time, tail, and memory** — the reproducibility
 property a CI latency-regression gate (or a WCET argument) would rely on.
 
+## Phase 12 — Roofline analysis
+*Script:* [`analysis/roofline.py`](analysis/roofline.py) · *Data:*
+[`results/analysis/roofline.json`](results/analysis/roofline.json) · *Figure:*
+[`figures/roofline.png`](figures/roofline.png)
+
+**Ridge points** (arithmetic intensity where the A10G flips memory- → compute-bound = peak ÷ 600 GB/s):
+
+| Precision | Peak | Ridge point |
+|---|---:|---:|
+| FP32 | 31.2 TFLOPS | 52.0 FLOP/byte |
+| FP16/BF16 | 62.5 TFLOPS | 104.2 FLOP/byte |
+| INT8 | 125 TOPS | 208.3 OP/byte |
+
+**Kernel arithmetic intensity** (AI = 2·M·K·N ÷ bytes of HBM traffic; classified at the BF16 ridge 104.2):
+
+| Kernel | AI (FLOP/byte) | vs ridge | Bound |
+|---|---:|---:|---|
+| LLM **decode** · attn QKV/O | 1.0 | 0.01× | **memory-bound** |
+| LLM **decode** · MLP gate/up | 1.0 | 0.01× | **memory-bound** |
+| LLM **decode** · MLP down | 1.0 | 0.01× | **memory-bound** |
+| LLM **decode** · LM head | 1.0 | 0.01× | **memory-bound** |
+| LLM prefill · attn QKV/O | 247.1 | 2.37× | compute-bound |
+| LLM prefill · MLP gate/up | 256.8 | 2.47× | compute-bound |
+| LLM prefill · MLP down | 256.8 | 2.47× | compute-bound |
+| Vision · ViT MLP (256 patch) | 195.1 | 1.87× | compute-bound |
+
+**The FLOPs-vs-time paradox (the headline):**
+
+| Stage | FLOPs/step | share of FLOPs | share of *time* (Phase 2) |
+|---|---:|---:|---:|
+| Prefill | 3.71 TFLOP | **97.9%** | ~35% |
+| Decode | 0.079 TFLOP | **2.1%** | **~59%** |
+
+Decode does **2% of the arithmetic but takes 59% of the wall-clock** — the textbook memory-bound
+signature. Each of the 7B weights is read from HBM to do a single MAC per token (AI ≈ 1), so the
+tensor cores sit ~99% idle during decode, starved on bandwidth. Prefill, batching ~281 tokens
+through the same weights, reaches AI ≈ 250 and runs compute-bound near the BF16 ceiling.
+
+**Cross-check:** analytic GEMM FLOPs = **3.79 TFLOP/step**, exactly matching the Phase-3 profiler's
+measured `aten::mm` (3.79 TFLOP/step, ratio 1.00) — the model is validated against measured data.
+
+**Why this ties the whole project together:** decode sits ~100× below the ridge, with enormous
+*bandwidth* headroom and zero *compute* headroom. That is precisely why low-precision **weights**
+are the theoretically correct lever for decode (fewer bytes/token moved → AI rises toward the
+ridge), and why INT4's 4-bit weights *should* help — the Phase-5 result that they don't in
+practice is a bitsandbytes dequant-overhead problem, not a roofline one. Conversely, prefill and
+vision are compute-bound, so they'd benefit from tensor-core throughput, not quantization.
+
 ---
 
 ## Deployment recommendations
