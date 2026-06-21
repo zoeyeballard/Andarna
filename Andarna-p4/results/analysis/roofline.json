@@ -1,0 +1,116 @@
+{
+  "a10g_specs": {
+    "peak_flops": {
+      "FP32": 31200000000000.0,
+      "FP16/BF16": 62500000000000.0,
+      "INT8": 125000000000000.0
+    },
+    "memory_bandwidth_bytes_s": 600000000000.0
+  },
+  "ridge_points_flop_per_byte": {
+    "FP32": 52.0,
+    "FP16/BF16": 104.17,
+    "INT8": 208.33
+  },
+  "model": {
+    "backbone": "Llama-2-7B",
+    "hidden": 4096,
+    "ffn": 11008,
+    "layers": 32,
+    "vocab": 32064,
+    "prefill_seq": 281,
+    "decode_tokens": 6,
+    "compute_dtype": "bf16"
+  },
+  "kernels": [
+    {
+      "kernel": "LLM decode \u00b7 attn QKV/O",
+      "regime": "decode",
+      "M": 1,
+      "K": 4096,
+      "N": 4096,
+      "arithmetic_intensity_flop_per_byte": 1.0,
+      "bound_at_bf16": "memory-bound",
+      "x_ridge_distance": 0.01
+    },
+    {
+      "kernel": "LLM decode \u00b7 MLP gate/up",
+      "regime": "decode",
+      "M": 1,
+      "K": 4096,
+      "N": 11008,
+      "arithmetic_intensity_flop_per_byte": 1.0,
+      "bound_at_bf16": "memory-bound",
+      "x_ridge_distance": 0.01
+    },
+    {
+      "kernel": "LLM decode \u00b7 MLP down",
+      "regime": "decode",
+      "M": 1,
+      "K": 11008,
+      "N": 4096,
+      "arithmetic_intensity_flop_per_byte": 1.0,
+      "bound_at_bf16": "memory-bound",
+      "x_ridge_distance": 0.01
+    },
+    {
+      "kernel": "LLM decode \u00b7 LM head",
+      "regime": "decode",
+      "M": 1,
+      "K": 4096,
+      "N": 32064,
+      "arithmetic_intensity_flop_per_byte": 1.0,
+      "bound_at_bf16": "memory-bound",
+      "x_ridge_distance": 0.01
+    },
+    {
+      "kernel": "LLM prefill \u00b7 attn QKV/O",
+      "regime": "prefill",
+      "M": 281,
+      "K": 4096,
+      "N": 4096,
+      "arithmetic_intensity_flop_per_byte": 247.1,
+      "bound_at_bf16": "compute-bound",
+      "x_ridge_distance": 2.372
+    },
+    {
+      "kernel": "LLM prefill \u00b7 MLP gate/up",
+      "regime": "prefill",
+      "M": 281,
+      "K": 4096,
+      "N": 11008,
+      "arithmetic_intensity_flop_per_byte": 256.82,
+      "bound_at_bf16": "compute-bound",
+      "x_ridge_distance": 2.466
+    },
+    {
+      "kernel": "LLM prefill \u00b7 MLP down",
+      "regime": "prefill",
+      "M": 281,
+      "K": 11008,
+      "N": 4096,
+      "arithmetic_intensity_flop_per_byte": 256.82,
+      "bound_at_bf16": "compute-bound",
+      "x_ridge_distance": 2.466
+    },
+    {
+      "kernel": "Vision \u00b7 ViT MLP (256 patch)",
+      "regime": "vision",
+      "M": 256,
+      "K": 1024,
+      "N": 4096,
+      "arithmetic_intensity_flop_per_byte": 195.05,
+      "bound_at_bf16": "compute-bound",
+      "x_ridge_distance": 1.872
+    }
+  ],
+  "flops_per_inference": {
+    "prefill_flops": 3713324810240.0,
+    "decode_flops": 79288074240.0,
+    "total_analytic": 3792612884480.0,
+    "prefill_share_pct": 97.9,
+    "decode_share_pct": 2.1,
+    "profiler_aten_mm_flops_per_step": 3792612884500.0,
+    "analytic_vs_profiler_ratio": 1.0
+  }
+}

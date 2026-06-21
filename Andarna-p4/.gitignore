@@ -1,0 +1,47 @@
+# Secrets — never commit
+.env
+.env.*
+*.token
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Model weights / checkpoints (large binaries)
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+adapter_tmp/
+
+# Profiling traces (large; download & open in Nsight GUI locally)
+*.nsys-rep
+*.ncu-rep
+*.sqlite
+*.qdrep
+traces/
+*.json.gz
+chrome_trace*.json
+
+# Raw experiment data — keep summaries only (see results/README.md)
+results/*
+!results/.gitkeep
+!results/README.md
+
+# Experiment trackers / logs
+wandb/
+runs/
+*.log
+
+# OS / editor cruft
+.DS_Store
+*.swp
+.idea/
+.vscode/

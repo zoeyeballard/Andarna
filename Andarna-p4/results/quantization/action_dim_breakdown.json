@@ -1,0 +1,99 @@
+{
+  "baseline": "bf16",
+  "n_obs": 5,
+  "dim_names": [
+    "dx",
+    "dy",
+    "dz",
+    "d_roll",
+    "d_pitch",
+    "d_yaw",
+    "gripper"
+  ],
+  "precisions": {
+    "fp16": {
+      "per_dim_mae": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "dz": 0.025,
+        "d_roll": 0.0,
+        "d_pitch": 0.02855,
+        "d_yaw": 0.0,
+        "gripper": 0.0
+      },
+      "worst_dim": "d_pitch",
+      "gripper_sign_flips": 0,
+      "gripper_error_share": 0.0,
+      "gripper_base_values": [
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961
+      ],
+      "gripper_prec_values": [
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961
+      ]
+    },
+    "int8": {
+      "per_dim_mae": {
+        "dx": 0.04453,
+        "dy": 0.17129,
+        "dz": 0.21324,
+        "d_roll": 0.00912,
+        "d_pitch": 0.01521,
+        "d_yaw": 0.01875,
+        "gripper": 0.0
+      },
+      "worst_dim": "dz",
+      "gripper_sign_flips": 0,
+      "gripper_error_share": 0.0,
+      "gripper_base_values": [
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961
+      ],
+      "gripper_prec_values": [
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961
+      ]
+    },
+    "int4": {
+      "per_dim_mae": {
+        "dx": 0.17813,
+        "dy": 0.19692,
+        "dz": 0.25882,
+        "d_roll": 0.00758,
+        "d_pitch": 0.02063,
+        "d_yaw": 0.01585,
+        "gripper": 0.0
+      },
+      "worst_dim": "dz",
+      "gripper_sign_flips": 0,
+      "gripper_error_share": 0.0,
+      "gripper_base_values": [
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961
+      ],
+      "gripper_prec_values": [
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961,
+        0.9961
+      ]
+    }
+  }
+}

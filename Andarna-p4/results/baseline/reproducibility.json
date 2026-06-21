@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "runs": 5,
+    "warmup": 20,
+    "iters": 100,
+    "device": "cuda:0",
+    "cv_threshold_pct": 5.0,
+    "timestamp_utc": "2026-06-21T20:41:40.520659+00:00"
+  },
+  "per_run": [
+    {
+      "run": 1,
+      "mean_ms": 359.311,
+      "p50_ms": 358.557,
+      "p95_ms": 365.6,
+      "max_ms": 375.21
+    },
+    {
+      "run": 2,
+      "mean_ms": 359.028,
+      "p50_ms": 358.802,
+      "p95_ms": 361.676,
+      "max_ms": 365.969
+    },
+    {
+      "run": 3,
+      "mean_ms": 358.538,
+      "p50_ms": 358.402,
+      "p95_ms": 360.357,
+      "max_ms": 362.795
+    },
+    {
+      "run": 4,
+      "mean_ms": 359.031,
+      "p50_ms": 358.578,
+      "p95_ms": 362.341,
+      "max_ms": 373.248
+    },
+    {
+      "run": 5,
+      "mean_ms": 359.393,
+      "p50_ms": 359.107,
+      "p95_ms": 361.112,
+      "max_ms": 372.494
+    }
+  ],
+  "across_run_mean_ms": 359.06,
+  "across_run_std_ms": 0.3348,
+  "cv_pct_of_mean_latency": 0.0932,
+  "cv_pct_of_p95_latency": 0.5596,
+  "reproducible": true
+}
