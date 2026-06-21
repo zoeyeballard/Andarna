@@ -1,0 +1,263 @@
+{
+  "metadata": {
+    "model_id": "openvla/openvla-7b-finetuned-libero-object",
+    "task_suite": "libero_object",
+    "num_tasks": 2,
+    "trials_per_task": 5,
+    "device_name": "NVIDIA A10G",
+    "torch_version": "2.2.0+cu121",
+    "python_version": "3.10.12",
+    "timestamp_utc": "2026-06-21T09:13:08.402166+00:00"
+  },
+  "results": {
+    "bf16": {
+      "status": "ok",
+      "precision": "bf16",
+      "n_trials": 10,
+      "n_success": 8,
+      "success_rate": 0.8,
+      "mean_step_latency_ms": 360.37,
+      "control_freq_hz": 2.77,
+      "max_steps": 280,
+      "elapsed_s": 710.5,
+      "trials": [
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 0,
+          "success": true,
+          "episode_length": 245
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 1,
+          "success": true,
+          "episode_length": 167
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 2,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 3,
+          "success": true,
+          "episode_length": 126
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 4,
+          "success": true,
+          "episode_length": 126
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 0,
+          "success": true,
+          "episode_length": 135
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 1,
+          "success": true,
+          "episode_length": 136
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 2,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 3,
+          "success": true,
+          "episode_length": 195
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 4,
+          "success": true,
+          "episode_length": 150
+        }
+      ]
+    },
+    "fp16": {
+      "status": "ok",
+      "precision": "fp16",
+      "n_trials": 10,
+      "n_success": 7,
+      "success_rate": 0.7,
+      "mean_step_latency_ms": 360.98,
+      "control_freq_hz": 2.77,
+      "max_steps": 280,
+      "elapsed_s": 816.4,
+      "trials": [
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 0,
+          "success": true,
+          "episode_length": 195
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 1,
+          "success": true,
+          "episode_length": 200
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 2,
+          "success": true,
+          "episode_length": 171
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 3,
+          "success": true,
+          "episode_length": 247
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 4,
+          "success": true,
+          "episode_length": 213
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 0,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 1,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 2,
+          "success": true,
+          "episode_length": 120
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 3,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 4,
+          "success": true,
+          "episode_length": 126
+        }
+      ]
+    },
+    "int4": {
+      "status": "ok",
+      "precision": "int4",
+      "n_trials": 10,
+      "n_success": 6,
+      "success_rate": 0.6,
+      "mean_step_latency_ms": 575.57,
+      "control_freq_hz": 1.74,
+      "max_steps": 280,
+      "elapsed_s": 1313.2,
+      "trials": [
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 0,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 1,
+          "success": true,
+          "episode_length": 210
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 2,
+          "success": true,
+          "episode_length": 232
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 3,
+          "success": true,
+          "episode_length": 171
+        },
+        {
+          "task_id": 0,
+          "task": "pick up the alphabet soup and place it in the basket",
+          "episode": 4,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 0,
+          "success": true,
+          "episode_length": 136
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 1,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 2,
+          "success": false,
+          "episode_length": 280
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 3,
+          "success": true,
+          "episode_length": 159
+        },
+        {
+          "task_id": 1,
+          "task": "pick up the cream cheese and place it in the basket",
+          "episode": 4,
+          "success": true,
+          "episode_length": 162
+        }
+      ]
+    }
+  }
+}
