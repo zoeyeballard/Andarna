@@ -84,6 +84,12 @@ class PolicyEvaluator:
         self._inference_ctx: Any = contextlib.nullcontext
         self._resolved_checkpoint: str | None = None
         self._loaded = False
+        # Optional sensor-perturbation hook (Project 2 bridge). When set to an object
+        # with .reset(seed) and .process(frame_hwc_uint8)->frame, each camera frame is
+        # degraded *before* the policy sees it — modelling the sensor/transport layer,
+        # never the model. None == the normal clean-observation path. See
+        # perturbation_tests.py.
+        self._image_degrader: Any = None
 
     # ------------------------------------------------------------------ #
     def load(self) -> None:
@@ -195,6 +201,28 @@ class PolicyEvaluator:
         )
 
     # ------------------------------------------------------------------ #
+    def _perturb_observation(self, obs):
+        """Apply the sensor-perturbation hook (if any) to every camera frame in the
+        raw env observation, in place, before preprocessing. The aloha vec-env nests
+        images under ``obs["pixels"][<cam>]`` with a leading n_envs dim, shape
+        (1, H, W, 3) uint8 — exactly the H×W×3 frame Project 2's degrader expects."""
+        if self._image_degrader is None:
+            return obs
+        pixels = obs.get("pixels") if isinstance(obs, dict) else None
+        if not isinstance(pixels, dict):
+            return obs
+        for cam, img in pixels.items():
+            arr = np.asarray(img)
+            # .copy(): the degrader's FIFO/last-frame buffers hold references to returned
+            # frames; copying keeps downstream preprocessing from aliasing (or warning on
+            # a non-writable view of) those internal buffers.
+            if arr.ndim == 4 and arr.shape[0] == 1 and arr.shape[-1] == 3:
+                pixels[cam] = self._image_degrader.process(arr[0]).copy()[None, ...]
+            elif arr.ndim == 3 and arr.shape[-1] == 3:
+                pixels[cam] = self._image_degrader.process(arr).copy()
+        return obs
+
+    # ------------------------------------------------------------------ #
     def _run_episode(
         self,
         seed: int,
@@ -211,7 +239,10 @@ class PolicyEvaluator:
         """
         policy, env = self.policy, self.env
         policy.reset()
+        if self._image_degrader is not None:
+            self._image_degrader.reset(seed=seed)  # reproducible per-episode degradation
         obs, _info = env.reset(seed=[seed])
+        obs = self._perturb_observation(obs)
 
         frames: list = []
         if capture_frames:
@@ -247,6 +278,7 @@ class PolicyEvaluator:
 
             t_step = time.perf_counter()
             obs, reward, terminated, truncated, info = env.step(action_np)
+            obs = self._perturb_observation(obs)
             if step_times_ms is not None:
                 step_times_ms.append((time.perf_counter() - t_step) * 1000.0)
             executed += 1

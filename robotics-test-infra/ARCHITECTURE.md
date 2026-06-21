@@ -118,7 +118,7 @@ src/
   reporter.py      validation + regression PR-comment markdown
   video_capture.py downscaled MP4 with step/latency overlays (non-success episodes)
   validation.py    checkpoint integrity (5d) + env health (5e) reports
-  perturbation_tests.py  STUB — Project 2 integration seam (see below)
+  perturbation_tests.py  Project 2 bridge — observation-degradation sweep (see below)
 scripts/           run_evaluation · update_baseline · generate_report ·
                    preflight · check_determinism · benchmark
 tests/unit/        fast, deps-light (Tier 1)        tests/integration/  full pipeline (Tier 2/3)
@@ -152,13 +152,19 @@ paths, easiest first:
 - **More tasks / models.** `EvalConfig` already carries `env_type`/`task`; the baseline
   schema has a `per_task_results` slot. Add `AlohaInsertion-v0` or a second policy and
   the same gates apply per task.
-- **Project 2's perturbation sweep** (`src/perturbation_tests.py` stub +
-  `proj3_perturbation_sweep.yml` stub). Project 2 degrades the *observation pipeline*
-  (sensor noise, latency, frame-drops, resolution) and maps the success-rate cliff. It
-  reuses this framework unchanged — a perturbed run still yields an `EvalResult` →
-  `AggregateMetrics` → baseline compare → PR comment; only the observation transform
-  differs. It needs a **GPU** (7B VLA), so it would run on a self-hosted GPU runner on
-  a schedule, gating on the *cliff location* rather than a single nominal number.
+- **Project 2's perturbation sweep — implemented** (`src/perturbation_tests.py` +
+  `proj3_perturbation_sweep.yml`, Tier 4). Project 2's degradation module degrades the
+  *observation pipeline* (sensor noise, latency, frame-drops, resolution) upstream of
+  the policy; `perturbation_sweep()` maps the success-rate-vs-severity curve and
+  `find_cliff()` locates where it collapses. It reuses this framework unchanged — a
+  perturbed run still yields an `EvalResult` → `AggregateMetrics` → CSV/markdown comment;
+  only `PolicyEvaluator._perturb_observation` (a per-camera, per-episode hook) differs.
+  **It runs on CPU.** Project 2's *7B OpenVLA* study needed a GPU, but the reused piece
+  is its degradation code (pure NumPy); applied to the small ACT policy it runs on the
+  same `ubuntu-latest` runners as Tiers 1-3. Tier 4 is `workflow_dispatch` + weekly
+  (a multi-level sweep is heavier than a single eval), gating on the *cliff location*
+  rather than a single nominal number. Run it locally with
+  `python scripts/run_perturbation_sweep.py --axis resolution`.
 - **Hardware-in-the-loop (HIL).** Swap the MuJoCo env for a driver that talks to real
   compute/actuators. The pyramid is identical: bring-up health checks (`validation.py`)
   become real power-on self-tests; the latency budget becomes a real-time deadline
