@@ -113,9 +113,13 @@ install_pytorch() {
 
 install_python_deps() {
   log "Installing transformers / bitsandbytes / supporting deps..."
+  # accelerate and bitsandbytes are version-pinned: the latest releases are incompatible
+  # with torch 2.2 / transformers 4.40.1 (newer accelerate's dispatch_model calls .to() on
+  # bnb models; newer bitsandbytes references torch APIs absent in 2.2). These are the
+  # known-good OpenVLA inference pins.
   pip install \
     "transformers==${TRANSFORMERS_VERSION}" \
-    "tokenizers" "accelerate" "bitsandbytes" \
+    "tokenizers" "accelerate==0.30.1" "bitsandbytes==0.43.1" \
     "timm" "einops" "sentencepiece" "protobuf" \
     "numpy<2" "matplotlib" "pandas" "pytest"
   ok "Core Python deps installed."
