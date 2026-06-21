@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "model_id": "openvla/openvla-7b-finetuned-libero-object",
+    "precision": "bfloat16",
+    "attn_implementation": "sdpa",
+    "unnorm_key": "libero_object",
+    "instruction": "pick up the object and place it in the basket",
+    "synthetic_image": true,
+    "warmup_steps": 20,
+    "timed_steps": 100,
+    "device_name": "NVIDIA A10G",
+    "torch_version": "2.2.0+cu121",
+    "cuda_version": "12.1",
+    "python_version": "3.10.12",
+    "model_load_seconds": 126.21,
+    "peak_gpu_mem_mb": 15476.0,
+    "timestamp_utc": "2026-06-21T06:35:32.445058+00:00"
+  },
+  "latency": {
+    "mean_ms": 358.668,
+    "p50_ms": 358.014,
+    "p95_ms": 363.697,
+    "max_ms": 368.353,
+    "min_ms": 357.104,
+    "std_ms": 2.094
+  },
+  "achieved_control_freq_hz_mean": 2.79
+}

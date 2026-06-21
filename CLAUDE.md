@@ -36,7 +36,7 @@ bandwidth to compensate. Reproducing and explaining this is part of the project.
 - .gitignore: .env, __pycache__, *.pt, *.bin, large trace files, results/
 
 ## Project Structure
-~/openvla-profiling/
+~/repositories/personal/Andarna-p4/
 ├── profiling/        # Timing and measurement scripts
 ├── quantization/     # Precision experiments and accuracy checks
 ├── optimization/     # torch.compile, batching experiments

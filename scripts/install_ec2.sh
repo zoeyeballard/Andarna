@@ -19,8 +19,11 @@
 set -euo pipefail
 
 # ----------------------------------------------------------------------------- config
+# Resolve the repo root from this script's location so it survives a folder rename/move.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 PYTHON_BIN="${PYTHON_BIN:-python3.10}"
-VENV_DIR="${VENV_DIR:-$HOME/openvla-profiling/.venv}"
+VENV_DIR="${VENV_DIR:-$REPO_ROOT/.venv}"
 SRC_DIR="${SRC_DIR:-$HOME/src}"               # where OpenVLA / LIBERO get cloned
 TORCH_CUDA_CHANNEL="${TORCH_CUDA_CHANNEL:-cu121}"   # PyTorch CUDA 12.1 wheels (A10G / Ampere)
 TRANSFORMERS_VERSION="${TRANSFORMERS_VERSION:-4.40.1}"

@@ -25,7 +25,7 @@ CUDA kernels are memory-bound vs compute-bound, and how quantization shifts the 
 ## Repository layout
 
 ```
-openvla-profiling/
+Andarna-p4/
 ├── profiling/        # Timing & measurement (torch profiler, NVTX, CUDA events, memory)
 ├── quantization/     # Precision sweeps and accuracy/parity checks
 ├── optimization/     # torch.compile, CUDA graphs, batching experiments
