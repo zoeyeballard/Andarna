@@ -243,6 +243,33 @@ CUDA caching allocator reuses the same blocks each step and the KV cache is rele
 determinism property that matters for an embedded deployment (predictable, bounded memory →
 no mid-task OOM). See the figure for the flat memory-over-time curves.
 
+## Phase 11 — Cross-run reproducibility
+*Script:* [`scripts/run_reproducibility.py`](scripts/run_reproducibility.py) · *Data:*
+[`results/baseline/reproducibility.json`](results/baseline/reproducibility.json)
+
+The latency benchmark (100 iters) run 5× as separate fresh processes:
+
+| run | mean ms |
+|---|---:|
+| 1 | 359.31 |
+| 2 | 359.03 |
+| 3 | 358.54 |
+| 4 | 359.03 |
+| 5 | 359.39 |
+
+| metric | value |
+|---|---:|
+| across-run mean | 359.06 ms |
+| across-run std | 0.335 ms |
+| **CV (mean latency)** | **0.093%** |
+| CV (p95 latency) | 0.560% |
+
+**Read:** CV of **0.093%** — ~50× under the 5% threshold, so no variance investigation was needed.
+Run-to-run spread is sub-millisecond across fresh CUDA contexts and model reloads. This validates
+that every single-run number in this report is trustworthy, and (with Phases 1 + 10) confirms
+OpenVLA inference on the A10G is deterministic in **time, tail, and memory** — the reproducibility
+property a CI latency-regression gate (or a WCET argument) would rely on.
+
 ---
 
 ## Deployment recommendations
