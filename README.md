@@ -118,6 +118,7 @@ slower than BF16, and INT8 was worse than INT4 on both axes (the known OpenVLA a
 | 10 | Memory stability (500 iters) | **leak-free** — allocated/peak flat to the byte (+0.0 MB drift) | [json](results/memory/memory_stability.json) · [fig](figures/memory_stability.png) |
 | 11 | Reproducibility (5 runs) | **CV 0.093%** of mean latency — far under 5%; benchmark is reproducible | [json](results/baseline/reproducibility.json) |
 | 12 | Roofline analysis | ridge (BF16) 104 F/B; **decode AI≈1 (memory-bound), prefill≈250 (compute-bound)**; decode = 2% of FLOPs / 59% of time | [json](results/analysis/roofline.json) · [fig](figures/roofline.png) |
+| 13 | Summary figures | 5 charts (latency/memory/accuracy/control-Hz vs precision + BF16 component split) | [figures/](figures/) |
 
 **Deployment takeaway:** run BF16/FP16 if memory allows; use INT4 only to *fit* on constrained
 memory (4.7 GB), never for speed; avoid INT8. Latency (~2.8 Hz) — not memory — is the binding
@@ -127,7 +128,7 @@ constraint for a real control loop.
 
 ## Status
 
-Phases 0–6, 8–12 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
+Phases 0–6, 8–13 complete (through summary figures). See [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
 Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation, torch.compile,
 batch scaling, memory stability, reproducibility, roofline). See
 [PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.

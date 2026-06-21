@@ -318,6 +318,20 @@ ridge), and why INT4's 4-bit weights *should* help — the Phase-5 result that t
 practice is a bitsandbytes dequant-overhead problem, not a roofline one. Conversely, prefill and
 vision are compute-bound, so they'd benefit from tensor-core throughput, not quantization.
 
+## Phase 13 — Summary figures
+*Script:* [`analysis/visualize.py`](analysis/visualize.py) · *Figures:* [`figures/`](figures/)
+
+Generated from the committed results:
+- [fig1_component_breakdown.png](figures/fig1_component_breakdown.png) — BF16 stacked component time.
+  *(Per-precision decomposition was not measured — only BF16 was decomposed in Phase 2; FP16/INT8/INT4
+  have end-to-end totals only. A truthful per-precision stacked chart needs GPU re-runs of the
+  component timer.)*
+- [fig2_latency_vs_precision.png](figures/fig2_latency_vs_precision.png) — latency vs precision (±std).
+- [fig3_memory_vs_precision.png](figures/fig3_memory_vs_precision.png) — peak memory vs precision.
+- [fig4_accuracy_vs_precision.png](figures/fig4_accuracy_vs_precision.png) — cosine vs precision (whisker → worst-case).
+- [fig5_control_freq.png](figures/fig5_control_freq.png) — control Hz per precision vs the 10 Hz target.
+- [memory_stability.png](figures/memory_stability.png) (Phase 10) · [roofline.png](figures/roofline.png) (Phase 12).
+
 ---
 
 ## Deployment recommendations
