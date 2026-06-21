@@ -1,47 +1,39 @@
 #!/usr/bin/env python
 """
-nsight_runner.py — Phase 4: clean NVTX-annotated OpenVLA inference for Nsight Systems.
+nsight_runner.py — Phase 4: clean OpenVLA inference harness with NVTX ranges, for Nsight Systems.
 
-No PyTorch Profiler here — just NVTX range markers around the four stages so they show up
-as named, colored bands on the nsys timeline:
+No PyTorch Profiler here — just NVTX range annotations around the four model stages so they
+appear as named bands on the nsys timeline:
 
-    inference_step
-      ├─ vision      (vision_backbone: SigLIP + DINOv2)
-      ├─ projector   (MLP projector)
-      ├─ prefill     (language_model, first call — full prompt + visual tokens)
-      └─ decode      (language_model, calls 2..N — one action token each)
+    VisionEncoder   -> vision_backbone   (SigLIP + DINOv2)
+    MLPProjector    -> projector
+    LLM_prefill     -> language_model, first call  (full prompt + visual tokens)
+    LLM_decode      -> language_model, calls 2..N  (one action token each)
 
-The script warms up, then opens a cudaProfiler capture window (cudaProfilerStart/Stop) around
-a small steady-state burst. Run it under nsys with `--capture-range=cudaProfilerApi` so the
-.nsys-rep contains only those steady-state steps — small enough to download and open locally.
+Each profiled iteration is wrapped in an `inference_step` range. Warmup runs *before*
+`cudaProfilerStart()`, and capture is bounded by `cudaProfilerStart/Stop`, so when you launch
+nsys with `--capture-range=cudaProfilerApi` the report contains only steady-state steps.
 
-----------------------------------------------------------------------------------------------
-nsys command (run on the EC2 A10G, from the repo root, with the venv active):
+Run it under nsys (see the command printed at the end of this docstring / in the README):
 
-    nsys profile \
-      --trace=cuda,nvtx,osrt,cublas,cudnn \
-      --capture-range=cudaProfilerApi \
-      --capture-range-end=stop \
-      --cuda-memory-usage=true \
-      --force-overwrite=true \
-      --output=traces/openvla_nvtx_timeline \
-      python profiling/nsight_runner.py --warmup 20 --capture-steps 10
+    nsys profile \\
+      --trace=cuda,nvtx,osrt \\
+      --cuda-memory-usage=true \\
+      --capture-range=cudaProfilerApi --capture-range-end=stop \\
+      --force-overwrite=true \\
+      --output=traces/openvla_nsys_timeline \\
+      python profiling/nsight_runner.py --warmup 20 --iters 10
 
-Then download traces/openvla_nvtx_timeline.nsys-rep and open it in the Nsight Systems GUI.
-----------------------------------------------------------------------------------------------
+Then download traces/openvla_nsys_timeline.nsys-rep and open it in the Nsight Systems GUI.
+The script also runs standalone (NVTX calls are no-ops without a profiler) for a quick check.
 """
 from __future__ import annotations
 
 import argparse
-import sys
-from pathlib import Path
 
 import numpy as np
 import torch
 from PIL import Image
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from profiling.component_timer import locate_submodules  # noqa: E402
 
 DEFAULT_MODEL = "openvla/openvla-7b-finetuned-libero-object"
 DEFAULT_UNNORM_KEY = "libero_object"
@@ -49,11 +41,11 @@ PROMPT_TEMPLATE = "In: What action should the robot take to {instruction}?\nOut:
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="NVTX-annotated OpenVLA runner for nsys.")
+    p = argparse.ArgumentParser(description="NVTX-annotated OpenVLA inference for nsys.")
     p.add_argument("--model-id", default=DEFAULT_MODEL)
     p.add_argument("--unnorm-key", default=DEFAULT_UNNORM_KEY)
-    p.add_argument("--warmup", type=int, default=20, help="Untimed warmup steps (outside capture).")
-    p.add_argument("--capture-steps", type=int, default=10, help="Steps inside the nsys capture window.")
+    p.add_argument("--warmup", type=int, default=20, help="Untimed warmup steps (before capture).")
+    p.add_argument("--iters", type=int, default=10, help="Steps captured on the timeline.")
     p.add_argument("--instruction", default="pick up the object and place it in the basket")
     p.add_argument("--attn-impl", default="sdpa", choices=["flash_attention_2", "sdpa", "eager"])
     p.add_argument("--device", default="cuda:0")
@@ -83,40 +75,44 @@ def load_model(model_id: str, attn_impl: str, device: str):
     return processor, model, used
 
 
-class NvtxStageAnnotator:
-    """Forward hooks that wrap each OpenVLA stage in an NVTX range for the nsys timeline."""
+class NVTXStageAnnotator:
+    """Forward hooks that push/pop NVTX ranges around OpenVLA's four stages."""
 
     def __init__(self, model):
-        self.vision, self.projector, self.lm = locate_submodules(model)
+        for attr in ("vision_backbone", "projector", "language_model"):
+            if not hasattr(model, attr):
+                raise AttributeError(f"Model is missing submodule '{attr}'.")
+        self.vision = model.vision_backbone
+        self.projector = model.projector
+        self.lm = model.language_model
         self._handles: list = []
-        self._lm_call_idx = 0
-
-    def _push(self, label_fn):
-        def pre_hook(module, args, kwargs):
-            torch.cuda.nvtx.range_push(label_fn())
-        return pre_hook
-
-    def _pop(self):
-        def post_hook(module, args, kwargs, output):
-            torch.cuda.nvtx.range_pop()
-            return output
-        return post_hook
+        self._lm_idx = 0
 
     def _lm_label(self) -> str:
-        self._lm_call_idx += 1
-        return "prefill" if self._lm_call_idx == 1 else "decode"
+        self._lm_idx += 1
+        return "LLM_prefill" if self._lm_idx == 1 else "LLM_decode"
 
     def reset_step(self):
-        self._lm_call_idx = 0
+        self._lm_idx = 0
 
     def attach(self):
-        for module, label_fn in [
-            (self.vision, lambda: "vision"),
-            (self.projector, lambda: "projector"),
+        def pre(label_fn):
+            def hook(module, args, kwargs):
+                torch.cuda.nvtx.range_push(label_fn())
+            return hook
+
+        def post(module, args, kwargs, output):
+            torch.cuda.nvtx.range_pop()
+            return output
+
+        specs = [
+            (self.vision, lambda: "VisionEncoder"),
+            (self.projector, lambda: "MLPProjector"),
             (self.lm, self._lm_label),
-        ]:
-            self._handles.append(module.register_forward_pre_hook(self._push(label_fn), with_kwargs=True))
-            self._handles.append(module.register_forward_hook(self._pop(), with_kwargs=True))
+        ]
+        for module, label_fn in specs:
+            self._handles.append(module.register_forward_pre_hook(pre(label_fn), with_kwargs=True))
+            self._handles.append(module.register_forward_hook(post, with_kwargs=True))
         return self
 
     def detach(self):
@@ -128,7 +124,7 @@ class NvtxStageAnnotator:
 def main() -> None:
     args = parse_args()
     if not torch.cuda.is_available():
-        raise SystemExit("CUDA is not available — this runner requires a GPU.")
+        raise SystemExit("CUDA is not available — this harness requires a GPU.")
     device = args.device
     torch.cuda.set_device(device)
 
@@ -145,30 +141,31 @@ def main() -> None:
         inputs = processor(prompt, image).to(device, dtype=torch.bfloat16)
         return model.predict_action(**inputs, unnorm_key=unnorm_key, do_sample=False)
 
-    annotator = NvtxStageAnnotator(model).attach()
-
-    # Warm up OUTSIDE the capture window so the trace shows steady-state only.
-    print(f"[warmup] {args.warmup} steps ...")
+    # --- Warmup OUTSIDE the captured region -------------------------------------------
+    print(f"[warmup] {args.warmup} steps (not captured) ...")
     with torch.inference_mode():
         for _ in range(args.warmup):
-            annotator.reset_step()
             run_step()
     torch.cuda.synchronize(device)
 
-    # Steady-state capture: nsys --capture-range=cudaProfilerApi keys off these calls.
-    print(f"[capture] {args.capture_steps} steps inside cudaProfiler window ...")
+    annotator = NVTXStageAnnotator(model).attach()
+
+    # --- Captured region: nsys --capture-range=cudaProfilerApi keys off these ----------
+    print(f"[capture] {args.iters} steps with NVTX ranges ...")
     torch.cuda.profiler.start()
-    with torch.inference_mode():
-        for i in range(args.capture_steps):
-            annotator.reset_step()
-            torch.cuda.nvtx.range_push(f"inference_step_{i}")
-            run_step()
-            torch.cuda.nvtx.range_pop()
-    torch.cuda.synchronize(device)
-    torch.cuda.profiler.stop()
+    try:
+        with torch.inference_mode():
+            for i in range(args.iters):
+                annotator.reset_step()
+                torch.cuda.nvtx.range_push(f"inference_step_{i}")
+                run_step()
+                torch.cuda.nvtx.range_pop()
+        torch.cuda.synchronize(device)
+    finally:
+        torch.cuda.profiler.stop()
+        annotator.detach()
 
-    annotator.detach()
-    print("[done] capture complete. If run under nsys, the .nsys-rep is now written.")
+    print("[done] capture complete. If run under nsys, open the .nsys-rep in Nsight Systems.")
 
 
 if __name__ == "__main__":

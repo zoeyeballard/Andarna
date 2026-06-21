@@ -65,7 +65,36 @@ Reproducing and explaining this (rather than "fixing" it) is part of the project
 - The GitHub token lives in `.env` as `personal_token` (never committed). Source it before push.
 - Work happens on branch `project-4-inference-optimization`; commit after each phase.
 
+## Profiling scripts
+
+All run on the EC2 A10G with the venv active (`source .venv/bin/activate`):
+
+| Script | What it produces |
+|---|---|
+| `scripts/run_baseline_latency.py` | End-to-end BF16 latency (mean/p50/p95/max) via CUDA events |
+| `scripts/run_component_breakdown.py` | Per-stage time + % of total (vision / projector / prefill / decode) |
+| `profiling/torch_profiler.py` | Chrome trace + top-20 ops by GPU time and by memory |
+| `profiling/nsight_runner.py` | NVTX-annotated runner for an Nsight Systems timeline |
+
+### Nsight Systems timeline (Phase 4)
+
+The runner brackets steady-state steps with `cudaProfilerStart/Stop` and tags the four stages
+with NVTX ranges (`VisionEncoder`, `MLPProjector`, `LLM_prefill`, `LLM_decode`). Capture with:
+
+```bash
+nsys profile \
+  --trace=cuda,nvtx,osrt \
+  --cuda-memory-usage=true \
+  --capture-range=cudaProfilerApi --capture-range-end=stop \
+  --force-overwrite=true \
+  --output=traces/openvla_nsys_timeline \
+  python profiling/nsight_runner.py --warmup 20 --iters 10
+```
+
+Download `traces/openvla_nsys_timeline.nsys-rep` and open it in the Nsight Systems GUI locally.
+Quick text check on the box: `nsys stats --report nvtx_pushpop_sum <file>.nsys-rep`.
+
 ## Status
 
-Phase 0 — project scaffolding. See [PROFILING_REPORT.md](PROFILING_REPORT.md) for findings as
-they land.
+Phases 0–4 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
+Profiler, Nsight timeline). See [PROFILING_REPORT.md](PROFILING_REPORT.md) for findings.
