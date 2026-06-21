@@ -166,6 +166,35 @@ full-suite run (10 tasks × 20–50 trials) would be needed to establish a real 
 rollouts were skipped (strictly dominated by INT4). Sim stack: robosuite 1.4.0 + mujoco 3.9.0 +
 bddl 1.0.1, headless EGL on the A10G, reusing Project 2's validated rollout glue.
 
+## Phase 8 — torch.compile (reduce-overhead)
+*Script:* [`optimization/torch_compile_test.py`](optimization/torch_compile_test.py) · *Data:*
+[`results/optimization/torch_compile.json`](results/optimization/torch_compile.json)
+
+`torch.compile(model.forward, mode="reduce-overhead")` on the full OpenVLA pipeline:
+
+| | result |
+|---|---|
+| Uncompiled baseline (eager) | 359.3 ms |
+| Compiled | **errored on first call — no speedup obtained** |
+
+**It errors during tracing**, before producing a single compiled graph (0 graphs, 0 graph breaks):
+
+```
+TorchRuntimeError: Failed running call_function scaled_dot_product_attention(... attn_mask
+size (1,1,281,280) ...): expand: attempting to expand a dimension of length 280!
+  in modeling_llama.py ... scaled_dot_product_attention   (called from OpenVLA forward)
+```
+
+**Read:** this confirms the VLM-generation caveat. The LLM backbone's attention uses a 4-D causal
+mask whose shape depends on the prefill sequence length vs. the growing KV cache (query len 281 vs
+key len 280). Inductor's fake-tensor tracing can't reconcile that dynamic mask shape and aborts —
+so `reduce-overhead` never even reaches CUDA-graph capture. Out of the box, torch.compile does
+**not** accelerate this pipeline. Paths that *could* work (not pursued here): compile only the
+**vision encoder** (static 224×224 input → no dynamic shapes), upgrade to a transformers/torch
+version with `StaticCache` + compile support for generation, or `suppress_errors=True` to fall
+back to eager (which yields no speedup). Given inference is GEMM-bound on already-fast tensor-core
+kernels (Phase 3), compile upside would be limited regardless.
+
 ---
 
 ## Deployment recommendations
