@@ -9,6 +9,7 @@ scripts/run_perturbation_sweep.py.)
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from src.config import EvalConfig
 from src.evaluator import PolicyEvaluator
@@ -75,6 +76,9 @@ def test_perturb_observation_noop_without_degrader():
 
 
 def test_resolution_degrader_preserves_shape():
+    # resolution reduction down/up-samples via Pillow, which is a sim-stack dep, not a
+    # Tier-1 one; skip on lean runners (the noise hook test above is numpy-only).
+    pytest.importorskip("PIL")
     deg = _import_degradations()
     ev = PolicyEvaluator(EvalConfig())
     degrader = deg.make_degrader("resolution", 4)
