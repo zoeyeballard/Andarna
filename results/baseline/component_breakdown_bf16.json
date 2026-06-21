@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "model_id": "openvla/openvla-7b-finetuned-libero-object",
+    "precision": "bfloat16",
+    "attn_implementation": "sdpa",
+    "warmup_steps": 20,
+    "timed_steps": 100,
+    "mean_decode_steps": 6.0,
+    "device_name": "NVIDIA A10G",
+    "torch_version": "2.2.0+cu121",
+    "python_version": "3.10.12",
+    "timestamp_utc": "2026-06-21T06:44:35.598634+00:00"
+  },
+  "end_to_end_mean_ms": 359.849,
+  "summed_stage_mean_ms": 354.678,
+  "unaccounted_overhead_ms": 5.171,
+  "unaccounted_overhead_pct": 1.44,
+  "stages": {
+    "vision": {
+      "mean_ms": 19.436,
+      "p50_ms": 19.177,
+      "p95_ms": 20.599,
+      "pct_of_total": 5.48
+    },
+    "projector": {
+      "mean_ms": 0.771,
+      "p50_ms": 0.77,
+      "p95_ms": 0.78,
+      "pct_of_total": 0.217
+    },
+    "prefill": {
+      "mean_ms": 123.893,
+      "p50_ms": 123.891,
+      "p95_ms": 123.933,
+      "pct_of_total": 34.931
+    },
+    "decode": {
+      "mean_ms": 210.579,
+      "p50_ms": 210.05,
+      "p95_ms": 213.888,
+      "pct_of_total": 59.372
+    }
+  }
+}
