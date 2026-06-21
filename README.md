@@ -94,7 +94,34 @@ nsys profile \
 Download `traces/openvla_nsys_timeline.nsys-rep` and open it in the Nsight Systems GUI locally.
 Quick text check on the box: `nsys stats --report nvtx_pushpop_sum <file>.nsys-rep`.
 
+## Results so far (Phases 0–6)
+
+Full write-up with per-phase detail and caveats: **[PROFILING_REPORT.md](PROFILING_REPORT.md)**.
+Raw data per phase is committed under [`results/`](results/).
+
+**Headline:** inference is LLM/GEMM-bound (LLM ≈ 94% of latency; `aten::mm` ≈ 86% of GPU time on
+Ampere tensor-core kernels). Quantization buys **memory, not speed** — every quantized config was
+slower than BF16, and INT8 was worse than INT4 on both axes (the known OpenVLA anomaly, reproduced).
+
+| Phase | What | Headline result | Data |
+|---|---|---|---|
+| 1 | BF16 baseline latency | 358.7 ms mean / p95 363.7 / 15.5 GB / **~2.8 Hz** | [json](results/baseline/baseline_latency_bf16.json) |
+| 2 | Per-stage breakdown | Vision 5.5% · Projector 0.2% · **Prefill 35% · Decode 59%** (LLM ≈ 94%) | [json](results/baseline/component_breakdown_bf16.json) |
+| 3 | PyTorch Profiler | `aten::mm` **86%** of GPU time (ampere_bf16 tensor-core GEMMs); flash-attn active (1.8%) | [txt](results/baseline/torch_profiler_top20.txt) |
+| 4 | Nsight timeline (NVTX) | 4 stage ranges captured; steady-state `.nsys-rep` (5.5 MB) | _(trace gitignored)_ |
+| 5 | Precision sweep | BF16 359 ms / FP16 360 / **INT8 1365 (3.8×)** / INT4 572 (1.6×); mem 15.5/15.5/8.5/**4.7 GB** | [json](results/quantization/precision_sweep.json) |
+| 6a | Action error vs BF16 | FP16 cos 0.997 · INT8 0.953 · **INT4 0.899** (MAE ≈ 41% of action scale) | [json](results/quantization/accuracy_validation.json) |
+| 6b | Gripper-flip test | **Refuted** — error is in translation deltas (`dz` worst), not the gripper | [json](results/quantization/action_dim_breakdown.json) |
+| 6c | LIBERO success (n=10) | BF16 80% · FP16 70% · INT4 60% (monotonic but within noise) | [json](results/behavioral/libero_success.json) |
+
+**Deployment takeaway:** run BF16/FP16 if memory allows; use INT4 only to *fit* on constrained
+memory (4.7 GB), never for speed; avoid INT8. Latency (~2.8 Hz) — not memory — is the binding
+constraint for a real control loop.
+
+**Pending:** roofline analysis; full-suite behavioral eval (for statistical significance).
+
 ## Status
 
-Phases 0–4 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
-Profiler, Nsight timeline). See [PROFILING_REPORT.md](PROFILING_REPORT.md) for findings.
+Phases 0–6 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
+Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation). See
+[PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
