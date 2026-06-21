@@ -119,16 +119,19 @@ slower than BF16, and INT8 was worse than INT4 on both axes (the known OpenVLA a
 | 11 | Reproducibility (5 runs) | **CV 0.093%** of mean latency — far under 5%; benchmark is reproducible | [json](results/baseline/reproducibility.json) |
 | 12 | Roofline analysis | ridge (BF16) 104 F/B; **decode AI≈1 (memory-bound), prefill≈250 (compute-bound)**; decode = 2% of FLOPs / 59% of time | [json](results/analysis/roofline.json) · [fig](figures/roofline.png) |
 | 13 | Summary figures | 5 charts (latency/memory/accuracy/control-Hz vs precision + BF16 component split) | [figures/](figures/) |
+| 14 | Final report | full write-up incl. embedded-systems perspective (Jetson / FPGA / RTOS) | [PROFILING_REPORT.md](PROFILING_REPORT.md) |
 
 **Deployment takeaway:** run BF16/FP16 if memory allows; use INT4 only to *fit* on constrained
 memory (4.7 GB), never for speed; avoid INT8. Latency (~2.8 Hz) — not memory — is the binding
 constraint for a real control loop.
 
-**Pending:** full-suite behavioral eval (for statistical significance); final report (Phase 14).
+**Optional follow-ups (not blocking):** per-precision component decomposition (fig1 is BF16-only —
+needs GPU); full-suite LIBERO eval (10×20–50 trials) for statistical significance; a fused-INT4
+kernel to test decode's roofline bandwidth headroom.
 
 ## Status
 
-Phases 0–6, 8–13 complete (scaffold, EC2 setup, baseline latency, component breakdown, PyTorch
-Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation, torch.compile,
-batch scaling, memory stability, reproducibility, roofline, summary figures). See
-[PROFILING_REPORT.md](PROFILING_REPORT.md) for the full report.
+**All planned phases complete (0–6, 8–14).** Scaffold, EC2 setup, baseline latency, component
+breakdown, PyTorch Profiler, Nsight timeline, precision sweep, accuracy + behavioral validation,
+torch.compile, batch scaling, memory stability, reproducibility, roofline, summary figures, and
+the final report. See [PROFILING_REPORT.md](PROFILING_REPORT.md).
