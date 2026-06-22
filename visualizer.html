@@ -127,6 +127,10 @@ canvas { border-radius:8px; }
   <a href="#status"><i class="ti ti-list-check"></i> Status annotated</a>
   <a href="#gpu"><i class="ti ti-cpu"></i> GPU architecture</a>
   <a href="#mlgpu"><i class="ti ti-chart-bar"></i> ML on GPU</a>
+  <div class="section-label">Core concepts</div>
+  <a href="#il-rl"><i class="ti ti-git-compare"></i> Imitation vs RL</a>
+  <a href="#quant-formats"><i class="ti ti-binary"></i> Number formats</a>
+  <a href="#kv-cache"><i class="ti ti-database"></i> KV cache &amp; decode</a>
 </nav>
 
 <main>
@@ -349,7 +353,7 @@ canvas { border-radius:8px; }
 <h2>P2: Measured robustness results <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">COMPLETE</span></h2>
 <p class="desc">Full experimental results from the OpenVLA-7B robustness study on LIBERO-Object (100 episodes per condition). Baselines: Object 71%, Spatial 88%. Four degradation axes swept on A10G GPU with fp16/SDPA and EGL rendering.</p>
 <div class="widget-frame">
-  <div class="wf-title"><i class="ti ti-chart-bar" style="font-size:13px"></i> Stacked deployment profiles</div>
+  <div class="wf-title"><i class="ti ti-chart-bar" style="font-size:13px"></i> Stacked deployment profiles <span style="color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">(illustrative composites — the four axes were swept individually)</span></div>
   <div id="p2-profiles"></div>
   <div style="margin:16px 0 0;padding:12px 14px;background:rgba(216,90,48,0.06);border:1px solid rgba(216,90,48,0.15);border-radius:8px">
     <div style="font-size:12px;font-weight:500;color:var(--coral);margin:0 0 4px"><i class="ti ti-alert-triangle" style="font-size:13px"></i> Fragility ranking</div>
@@ -568,6 +572,65 @@ canvas { border-radius:8px; }
 </div>
 </div>
 
+<!-- ═══════════ 14. IMITATION vs RL ═══════════ -->
+<div class="section" id="il-rl">
+<h2>Imitation learning vs RL <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">Core concept</span></h2>
+<p class="desc">Every policy in this portfolio — ACT (P1), OpenVLA (P2), π0 — is trained by <em>imitation</em>: copy expert demos. RL fine-tuning is the frontier beyond it (π0.6). Toggle to compare how each learns and where it breaks.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 14px">
+    <button class="mode-btn active" id="ilrl-il" onclick="setILRL('il')">Imitation learning</button>
+    <button class="mode-btn" id="ilrl-rl" onclick="setILRL('rl')">Reinforcement learning</button>
+  </div>
+  <div id="ilrl-cards"></div>
+  <div style="margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="ilrl-note"></div>
+</div>
+</div>
+
+<!-- ═══════════ 15. NUMBER FORMATS & QUANTIZATION ═══════════ -->
+<div class="section" id="quant-formats">
+<h2>Number formats &amp; quantization <span class="badge" style="background:rgba(239,159,39,0.15);color:var(--amber)">Why INT8 ≠ faster</span></h2>
+<p class="desc">P4 found quantization buys memory, not speed. Here is the why at the bit level — how each format lays out its bits, what it costs per parameter, and why INT8's mixed path adds overhead. Toggle a format.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 14px">
+    <button class="mode-btn active" id="qf-fp32" onclick="setQF('fp32')">FP32</button>
+    <button class="mode-btn" id="qf-bf16" onclick="setQF('bf16')">BF16</button>
+    <button class="mode-btn" id="qf-fp16" onclick="setQF('fp16')">FP16</button>
+    <button class="mode-btn" id="qf-int8" onclick="setQF('int8')">INT8</button>
+    <button class="mode-btn" id="qf-int4" onclick="setQF('int4')">INT4</button>
+  </div>
+  <div style="font-size:10px;color:var(--text3);margin:0 0 6px">Bit layout (per parameter)</div>
+  <div id="qf-bits" style="display:flex;gap:3px;margin:0 0 4px;height:34px"></div>
+  <div id="qf-bitlabels" style="display:flex;gap:3px;margin:0 0 12px;font-size:10px;color:var(--text3)"></div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label">Bits / param</div><div class="val" id="qf-bitcount">32</div></div>
+    <div class="stat-card"><div class="label">Bytes / param</div><div class="val" id="qf-bytes">4</div></div>
+    <div class="stat-card"><div class="label">7B weights</div><div class="val" id="qf-total">28 GB</div></div>
+  </div>
+  <div style="margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="qf-note"></div>
+</div>
+</div>
+
+<!-- ═══════════ 16. KV CACHE & DECODE ═══════════ -->
+<div class="section" id="kv-cache">
+<h2>KV cache &amp; autoregressive decode <span class="badge" style="background:rgba(226,75,74,0.15);color:var(--red)">Why decode is memory-bound</span></h2>
+<p class="desc">P4 found LLM decode is 59% of latency and memory-bound. Here is why: generating each of the ~7 action tokens re-reads the entire 7B weight set from HBM, while the KV cache grows by one token. Step through the decode loop.</p>
+<div class="widget-frame">
+  <div class="slider-row">
+    <label>Decode step <strong id="kv-stepnum">1</strong>/7</label>
+    <input type="range" min="1" max="7" value="1" id="kv-slider" oninput="setKV(+this.value)">
+  </div>
+  <div style="font-size:10px;color:var(--text3);margin:8px 0 4px">KV cache — prefill prompt + generated action tokens</div>
+  <div id="kv-boxes" style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 12px"></div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label">Tokens cached</div><div class="val" id="kv-cached">282</div></div>
+    <div class="stat-card"><div class="label">Weight reads so far</div><div class="val" id="kv-reads" style="color:var(--red)">14 GB</div></div>
+    <div class="stat-card"><div class="label">Arithmetic intensity</div><div class="val" id="kv-ai" style="color:var(--red)">≈ 1</div></div>
+    <div class="stat-card"><div class="label">Tensor-core use</div><div class="val">~1%</div></div>
+  </div>
+  <div style="margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="kv-note"></div>
+</div>
+</div>
+
 </main>
 
 <script>
@@ -757,16 +820,16 @@ updateLora(16);
 
 // ═══════════ 8. ROBUSTNESS ═══════════
 const degData={
-  noise:{levels:[0,.01,.02,.05,.10,.15,.20,.30],success:[70,70,70,65,45,0,0,0],unit:'σ',
+  noise:{levels:[0,.01,.02,.05,.10,.15,.20,.30],success:[71,71,71,65,45,0,0,0],unit:'σ',
     finding:'Sharp cliff at σ=0.10→0.15 (45%→0%). Below σ=0.05, noise is invisible to the policy. Behavioral: lock-on/lose bifurcation — the policy either converges or diverges with no middle ground.',
     labelFn:v=>'σ = '+v},
-  latency:{levels:[0,1,2,3,5,8,10],success:[70,65,55,35,0,0,0],unit:'steps',
+  latency:{levels:[0,1,2,3,5,8,10],success:[71,65,55,35,0,0,0],unit:'steps',
     finding:'Linear degradation 0→3 steps, then cliff to 0% at 5 steps. At 20 Hz, each step = 50 ms. Latency budget: 50 ms (1 step). Behavioral: oscillation → overshoot → timeout.',
     labelFn:v=>v+' step'+(v!==1?'s':'')},
-  drop:{levels:[0,.05,.10,.20,.30,.50],success:[70,70,65,60,65,70],unit:'rate',
+  drop:{levels:[0,.05,.10,.20,.30,.50],success:[71,71,65,60,65,71],unit:'rate',
     finding:'FLAT curve — frame drops are benign. Even at 50% drop rate, success remains at baseline (70%). The policy is robust to temporal gaps because it relies on spatial features, not motion.',
     labelFn:v=>Math.round(v*100)+'%'},
-  resolution:{levels:[1,2,4,8],success:[70,15,0,0],unit:'× downsample',
+  resolution:{levels:[1,2,4,8],success:[71,15,0,0],unit:'× downsample',
     finding:'Steepest cliff of all axes: 2× downsample drops from 70%→15%. At 4× the policy is blind. Resolution is the #1 fragility. The policy cannot resolve grasp targets at low resolution.',
     labelFn:v=>v+'×'}
 };
@@ -784,7 +847,7 @@ function updateDeg(idx){
   document.getElementById('deg-val').textContent=success+'%';
   const clr=s=>s>=60?'var(--teal)':s>=20?'var(--amber)':'var(--red)';
   document.getElementById('deg-bars').innerHTML='<div class="impact-row"><span class="impact-label">Task success</span><div class="impact-track"><div class="impact-fill" style="width:'+success+'%;background:'+clr(success)+'"></div></div><span class="impact-val" style="color:'+clr(success)+'">'+success+'%</span></div>'
-    +'<div class="impact-row"><span class="impact-label">vs baseline</span><div class="impact-track"><div class="impact-fill" style="width:'+(success/70*100)+'%;background:'+clr(success)+'"></div></div><span class="impact-val" style="color:'+clr(success)+'">'+Math.round(success/70*100)+'%</span></div>';
+    +'<div class="impact-row"><span class="impact-label">vs baseline</span><div class="impact-track"><div class="impact-fill" style="width:'+(success/71*100)+'%;background:'+clr(success)+'"></div></div><span class="impact-val" style="color:'+clr(success)+'">'+Math.round(success/71*100)+'%</span></div>';
   const c=document.getElementById('deg-canvas'),ctx=c.getContext('2d');
   const W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
   const n=d.levels.length,barW=Math.min(80,(W-80)/n-8),startX=(W-(n*(barW+8)-8))/2;
@@ -802,7 +865,7 @@ function updateDeg(idx){
     ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText(d.labelFn(d.levels[i]),x+barW/2,H-16);
   }
   ctx.fillStyle='rgba(216,90,48,0.4)';ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(216,90,48,0.6)';ctx.lineWidth=1;
-  const baseY=H-30-(70/100)*(H-60);ctx.beginPath();ctx.moveTo(20,baseY);ctx.lineTo(W-20,baseY);ctx.stroke();
+  const baseY=H-30-(71/100)*(H-60);ctx.beginPath();ctx.moveTo(20,baseY);ctx.lineTo(W-20,baseY);ctx.stroke();
   ctx.setLineDash([]);ctx.fillStyle='rgba(216,90,48,0.6)';ctx.textAlign='left';ctx.fillText('baseline 71%',W-80,baseY-4);
   document.getElementById('deg-explain').innerHTML='<strong style="color:var(--text)">'+(['Noise','Latency','Frame drops','Resolution'][['noise','latency','drop','resolution'].indexOf(degMode)])+':</strong> '+d.finding;
 }
@@ -951,7 +1014,7 @@ setMLPrec('bf16');
 // ═══════════ 8b. P2 MEASURED RESULTS ═══════════
 (function(){
   const profiles=[
-    {name:'Lab (clean)',success:90,desc:'No degradation applied',color:'var(--teal)'},
+    {name:'Lab (clean)',success:71,desc:'No degradation (Object baseline)',color:'var(--teal)'},
     {name:'Field (mild)',success:55,desc:'σ=0.05, 1-step latency, 10% drops',color:'var(--blue)'},
     {name:'Challenging field',success:20,desc:'σ=0.10, 2-step latency, 20% drops',color:'var(--amber)'},
     {name:'High-stress field',success:0,desc:'σ=0.15, 3-step latency, 30% drops',color:'var(--red)'}
@@ -1042,6 +1105,66 @@ const piTerms=[
 ];
 document.getElementById('pi-terms').innerHTML=piTerms.map(t=>'<div class="term-row" onclick="this.classList.toggle(\'open\')"><span class="term-code">'+t[0]+'</span><div class="term-detail">'+t[1]+'</div></div>').join('');
 setFlowMode('ar');
+
+// ═══════════ 14. IMITATION vs RL ═══════════
+const ilrlData={
+ il:{cards:[['Signal','Copy expert demonstrations','var(--teal)'],['Data source','Fixed offline dataset (teleop / human)','var(--teal)'],['Sample efficiency','High — fast from few demos','var(--teal)'],['Performance ceiling','Capped at demo quality','var(--coral)'],['Failure mode','Compounding error off-distribution','var(--coral)'],['In this stack','ACT, OpenVLA, π0 (all imitation)','var(--blue)']],
+   note:'Imitation learning (behavioral cloning) is supervised learning on observation→action pairs: simple and stable, but only as good as its demos, and it drifts when it leaves the demo distribution — the compounding error the action-chunking demo shows.'},
+ rl:{cards:[['Signal','Reward from trial and error','var(--teal)'],['Data source','Self-collected via interaction','var(--coral)'],['Sample efficiency','Low — many rollouts needed','var(--coral)'],['Performance ceiling','Can exceed the demos','var(--teal)'],['Failure mode','Reward hacking, unsafe exploration','var(--coral)'],['In this stack','Frontier: RL fine-tuning (π0.6)','var(--blue)']],
+   note:'RL optimizes a reward instead of copying demos, so it can surpass the teacher and recover from its own mistakes — but it is sample-hungry and harder to stabilize. The production pattern is imitation to bootstrap, then RL fine-tuning on top.'}
+};
+function setILRL(m){
+  document.getElementById('ilrl-il').classList.toggle('active',m==='il');
+  document.getElementById('ilrl-rl').classList.toggle('active',m==='rl');
+  const d=ilrlData[m];let html='';
+  for(let i=0;i<d.cards.length;i+=2){html+='<div class="card-row">';
+    for(let j=i;j<Math.min(i+2,d.cards.length);j++){const c=d.cards[j];
+      html+='<div class="info-card"><div class="ic-title" style="color:'+c[2]+'">'+c[0]+'</div><div class="ic-body">'+c[1]+'</div></div>';}
+    html+='</div>';}
+  document.getElementById('ilrl-cards').innerHTML=html;
+  document.getElementById('ilrl-note').innerHTML='<strong style="color:var(--text)">'+(m==='il'?'Imitation':'RL')+':</strong> '+d.note;
+}
+setILRL('il');
+
+// ═══════════ 15. NUMBER FORMATS & QUANTIZATION ═══════════
+const qfData={
+ fp32:{fields:[['S',1,'#E24B4A'],['Exponent',8,'#378ADD'],['Mantissa',23,'#5DCAA5']],bytes:4,note:'Full precision — the training reference. 4 bytes/param, so ~28 GB just for 7B weights. Rarely used for VLA inference.'},
+ bf16:{fields:[['S',1,'#E24B4A'],['Exp',8,'#378ADD'],['Mant',7,'#5DCAA5']],bytes:2,note:'Brain-float: keeps FP32 full 8-bit exponent (no overflow) but only 7 mantissa bits. Ampere tensor-core native — OpenVLA fastest path and the P4 baseline (359 ms).'},
+ fp16:{fields:[['S',1,'#E24B4A'],['Exp',5,'#378ADD'],['Mant',10,'#5DCAA5']],bytes:2,note:'More mantissa than BF16 but a smaller 5-bit exponent → narrower range / overflow risk in training. For OpenVLA inference, identical to BF16 (P4: 360 ms).'},
+ int8:{fields:[['8-bit integer + per-tensor scale',8,'#EF9F27']],bytes:1,note:'Not just 8 bits: bitsandbytes LLM.int8() keeps outlier channels in FP16 and quantizes/dequantizes the rest per op. That mixed path is overhead — why P4 measured INT8 as the SLOWEST (1365 ms, 3.8×).'},
+ int4:{fields:[['4-bit NF4 + double-quant',4,'#D85A30']],bytes:0.5,note:'NF4 = sixteen 4-bit levels spaced for a normal distribution; weights dequantize to BF16 to compute. 0.31× memory (4.7 GB — the one P4 win) but still 1.6× slower than BF16.'}
+};
+function setQF(p){
+  ['fp32','bf16','fp16','int8','int4'].forEach(k=>document.getElementById('qf-'+k).classList.toggle('active',k===p));
+  const d=qfData[p],bits=d.fields.reduce((a,f)=>a+f[1],0);
+  let strip='',labels='';
+  d.fields.forEach(f=>{
+    strip+='<div style="flex:'+f[1]+';background:'+f[2]+';opacity:.7;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;min-width:16px">'+f[1]+'</div>';
+    labels+='<div style="flex:'+f[1]+';text-align:center;min-width:16px">'+f[0]+'</div>';
+  });
+  document.getElementById('qf-bits').innerHTML=strip;
+  document.getElementById('qf-bitlabels').innerHTML=labels;
+  document.getElementById('qf-bitcount').textContent=bits;
+  document.getElementById('qf-bytes').textContent=d.bytes;
+  document.getElementById('qf-total').textContent=(d.bytes*7).toFixed(d.bytes<1?1:0)+' GB';
+  document.getElementById('qf-note').innerHTML=d.note;
+}
+setQF('fp32');
+
+// ═══════════ 16. KV CACHE & AUTOREGRESSIVE DECODE ═══════════
+const KV_PROMPT=281;
+function setKV(s){
+  document.getElementById('kv-stepnum').textContent=s;
+  const total=KV_PROMPT+s;
+  document.getElementById('kv-cached').textContent=total;
+  document.getElementById('kv-reads').textContent=(s*14)+' GB';
+  let html='<div style="display:flex;align-items:center;gap:4px;background:rgba(55,138,221,0.15);border:1px solid rgba(55,138,221,0.35);border-radius:4px;padding:4px 8px;font-size:10px;color:var(--blue)">prompt + visual: '+KV_PROMPT+' tokens</div>';
+  for(let i=1;i<=7;i++){const on=i<=s;
+    html+='<div style="width:28px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;background:'+(on?'rgba(226,75,74,0.5)':'rgba(255,255,255,0.04)')+';border:1px solid '+(on?'rgba(226,75,74,0.7)':'var(--border)')+';color:'+(on?'#fff':'var(--text3)')+'">a'+i+'</div>';}
+  document.getElementById('kv-boxes').innerHTML=html;
+  document.getElementById('kv-note').innerHTML='<strong style="color:var(--text)">Step '+s+':</strong> the model appends action token a'+s+', attending to all '+total+' cached tokens. To produce this one token it streams the full ~14 GB of 7B weights from HBM for a single multiply-add each → arithmetic intensity ≈ 1, tensor cores ~99% idle. Over 7 steps that is '+(7*14)+' GB of weight traffic for ~7 tokens. <strong style="color:var(--text)">π0 flow matching</strong> sidesteps this by generating the whole action chunk in 1–10 parallel steps (see the frontier section).';
+}
+setKV(1);
 </script>
 </body>
 </html>
