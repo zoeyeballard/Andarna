@@ -283,7 +283,7 @@ canvas { border-radius:8px; }
   </div>
   <div class="flow-arrow"><i class="ti ti-arrow-down"></i></div>
   <div style="display:flex;gap:8px;margin:0 0 6px">
-    <div class="flow-block" style="flex:1;background:rgba(55,138,221,0.08);cursor:pointer" onclick="showVLA('venc')"><p class="fb-title" style="color:var(--blue)">Vision encoder (SigLIP)</p></div>
+    <div class="flow-block" style="flex:1;background:rgba(55,138,221,0.08);cursor:pointer" onclick="showVLA('venc')"><p class="fb-title" style="color:var(--blue)">Vision encoder (SigLIP + DINOv2)</p></div>
     <div class="flow-block" style="flex:1.5;background:rgba(127,119,221,0.08);cursor:pointer" onclick="showVLA('llm')"><p class="fb-title" style="color:var(--accent)">LLM backbone (Llama 2 7B)</p><p class="fb-sub" style="color:rgba(127,119,221,.5)">Frozen + LoRA</p></div>
   </div>
   <div class="flow-arrow"><i class="ti ti-arrow-down"></i></div>
@@ -550,20 +550,21 @@ canvas { border-radius:8px; }
 <!-- ═══════════ 13. ML ON GPU ═══════════ -->
 <div class="section" id="mlgpu">
 <h2>ML inference on GPU <span class="badge" style="background:rgba(239,159,39,0.15);color:var(--amber)">Forward pass trace</span></h2>
-<p class="desc">Trace a VLA forward pass through the GPU hardware. Switch precision to see how tensor cores activate and memory bandwidth changes. Click any stage for hardware details.</p>
+<p class="desc">Trace OpenVLA's forward pass through the GPU hardware, using P4's real measured totals. The headline matches the precision section above: quantization is <em>slower</em> here — the 7B LLM backbone dominates, and INT8's mixed-precision path is the worst of all four.</p>
 <div class="widget-frame">
   <div class="mode-toggle" style="margin:0 0 16px">
-    <button class="mode-btn active" id="ml-fp32" onclick="setMLPrec('fp32')">FP32</button>
+    <button class="mode-btn active" id="ml-bf16" onclick="setMLPrec('bf16')">BF16</button>
     <button class="mode-btn" id="ml-fp16" onclick="setMLPrec('fp16')">FP16</button>
     <button class="mode-btn" id="ml-int8" onclick="setMLPrec('int8')">INT8</button>
-    <button class="mode-btn" id="ml-4bit" onclick="setMLPrec('4bit')">4-bit</button>
+    <button class="mode-btn" id="ml-int4" onclick="setMLPrec('int4')">INT4</button>
   </div>
   <div id="ml-stages"></div>
   <div style="display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px">
     <span style="font-size:12px;color:var(--text2)">Total per step:</span>
-    <span style="font-size:18px;font-weight:500" id="ml-total">820ms</span>
-    <span style="font-size:12px;color:var(--text3)" id="ml-hz">→ 1.2 Hz</span>
+    <span style="font-size:18px;font-weight:500" id="ml-total">359 ms</span>
+    <span style="font-size:12px;color:var(--text3)" id="ml-hz">→ 2.8 Hz</span>
   </div>
+  <div style="margin:10px 0 0;font-size:11px;color:var(--text3);line-height:1.5">Totals are P4's measured end-to-end latency (100 iters/precision on the A10G). The per-stage split is measured at BF16 (Phase 2); for quantized precisions the difference is attributed to the LLM backbone (the precision-sensitive, ~94% stage) — so the stage split is approximate while the totals are exact.</div>
 </div>
 </div>
 
@@ -700,7 +701,7 @@ const projNames=['Data pipeline + training \u2713','Robustness analysis \u2713',
 const projDetails=[
   '<strong style="color:var(--text)">Project 1 \u2014 LeRobot + ACT <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Full pipeline: ALOHA dataset \u2192 ACT training \u2192 MuJoCo eval. Retrained to convergence (100k steps, A10G) \u2192 <strong>66% success</strong> (33/50). Checkpoint on HF Hub (zoeyeballard/act-aloha-cube). Merged into main.',
   '<strong style="color:var(--text)">Project 2 \u2014 OpenVLA Robustness <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Robustness envelope of OpenVLA-7B on LIBERO (Object 71%, Spatial 88%). Four degradation axes + stacked profiles. Fragility: resolution > latency > noise \u226B drops. 50 ms latency budget. Merged into main via PR #2.',
-  '<strong style="color:var(--text)">Project 3 \u2014 CI/CD Test Infrastructure <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Three-tier GitHub Actions pipeline \u2014 all tiers live. 66% baseline (retrained ACT), success gate \u226540%, p95 latency + regression gating. Docker/OSMesa. Merged into main via PR #1.',
+  '<strong style="color:var(--text)">Project 3 \u2014 CI/CD Test Infrastructure <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Four-tier GitHub Actions pipeline (Tier 4 = the P2\u2194P3 perturbation bridge) \u2014 all live. 66% baseline (retrained ACT), success gate \u226540%, p95 latency + regression gating. Docker/OSMesa.',
   '<strong style="color:var(--text)">Project 4 \u2014 Inference Optimization <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Profiled OpenVLA-7B across 14 phases on an A10G \u2014 CUDA-event timing, PyTorch Profiler, Nsight/NVTX, precision sweep, roofline. Findings: LLM \u2248 94% of latency; <strong>quantization buys memory, not speed</strong> (INT8 3.8\u00D7 slower, INT4 1.6\u00D7 / 0.31\u00D7 memory); ~2.8 Hz at BF16. Merged into main as Andarna-p4/ via PR #4.'
 ];
 function showProject(idx){
@@ -722,7 +723,7 @@ const vlaDetails={
   vision:'<strong style="color:var(--text)">Camera image:</strong> RGB from overhead/wrist cameras. Gets chunked into patches and encoded by a vision transformer. OpenVLA uses SigLIP — a contrastive encoder that already "knows" objects before robot training.',
   lang:'<strong style="color:var(--text)">Task instruction:</strong> A natural-language string. This is what makes VLAs different — the policy can follow arbitrary instructions at runtime without retraining.',
   proprio:'<strong style="color:var(--text)">Proprioception:</strong> Joint positions, velocities, gripper state. Tells the model where the arm currently is.',
-  venc:'<strong style="color:var(--text)">Vision encoder (SigLIP):</strong> Converts camera image into visual tokens. Pretrained on millions of image-text pairs, so it already encodes "red mug" and "left side of table."',
+  venc:'<strong style="color:var(--text)">Vision encoder (SigLIP + DINOv2):</strong> OpenVLA stacks two pretrained encoders — SigLIP (semantic, image-text contrastive) and DINOv2 (spatial/geometric) — into the visual tokens, so it captures both "red mug" and precise object geometry.',
   llm:'<strong style="color:var(--text)">LLM backbone (Llama 2 7B):</strong> Processes visual + language tokens, then autoregressively generates action tokens. Mostly frozen — only LoRA adapters are trained.',
   action:'<strong style="color:var(--text)">Action tokens:</strong> The LLM outputs discrete tokens from an action tokenizer. A detokenizer converts them back into continuous 7-DoF joint targets.'
 };
@@ -928,23 +929,24 @@ showGPU('chip');
 
 // ═══════════ 13. ML ON GPU ═══════════
 const mlStages=[
-  {n:'Image preprocessing',c:'#888780',times:{fp32:5,fp16:5,int8:5,'4bit':5}},
-  {n:'Vision encoder (ViT)',c:'#378ADD',times:{fp32:120,fp16:65,int8:45,'4bit':50}},
-  {n:'LLM backbone (7B)',c:'#7F77DD',times:{fp32:580,fp16:280,int8:160,'4bit':200}},
-  {n:'Action head',c:'#EF9F27',times:{fp32:15,fp16:8,int8:6,'4bit':8}},
-  {n:'Host transfer',c:'#888780',times:{fp32:2,fp16:2,int8:2,'4bit':2}}
+  {n:'Image preprocessing',c:'#888780',times:{bf16:3,fp16:3,int8:3,int4:3}},
+  {n:'Vision encoder (SigLIP+DINOv2)',c:'#378ADD',times:{bf16:19,fp16:19,int8:19,int4:19}},
+  {n:'MLP projector',c:'#16a085',times:{bf16:1,fp16:1,int8:1,int4:1}},
+  {n:'LLM backbone (prefill+decode, 7B)',c:'#7F77DD',times:{bf16:334,fp16:335,int8:1340,int4:547}},
+  {n:'Action head + detokenize',c:'#EF9F27',times:{bf16:2,fp16:2,int8:2,int4:2}}
 ];
 function setMLPrec(p){
-  ['fp32','fp16','int8','4bit'].forEach(k=>document.getElementById('ml-'+k).classList.toggle('active',k===p));
-  let total=0,html='';const maxT=mlStages.reduce((m,s)=>Math.max(m,s.times.fp32),0);
+  ['bf16','fp16','int8','int4'].forEach(k=>document.getElementById('ml-'+k).classList.toggle('active',k===p));
+  let total=0,html='';
+  const maxT=Math.max(...mlStages.map(s=>Math.max(...Object.values(s.times))));
   mlStages.forEach(s=>{const ms=s.times[p];total+=ms;const pct=ms/maxT*80;
     html+='<div class="bar-row"><div class="bar-label">'+s.n+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(3,pct)+'%;background:'+s.c+'"><span class="bar-fill-text">'+ms+'ms</span></div></div></div>';
   });
   document.getElementById('ml-stages').innerHTML=html;
-  document.getElementById('ml-total').textContent=total+'ms';
+  document.getElementById('ml-total').textContent=total+' ms';
   document.getElementById('ml-hz').textContent='→ '+(1000/total).toFixed(1)+' Hz';
 }
-setMLPrec('fp32');
+setMLPrec('bf16');
 
 // ═══════════ 8b. P2 MEASURED RESULTS ═══════════
 (function(){
