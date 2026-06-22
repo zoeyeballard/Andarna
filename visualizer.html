@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robotics &amp; VLA Interactive Reference</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root {
+  --bg: #0e0f11; --bg2: #161719; --bg3: #1e2023;
+  --text: #e4e2d8; --text2: #9c9a90; --text3: #6b6960;
+  --border: rgba(255,255,255,0.08); --accent: #7F77DD;
+  --teal: #5DCAA5; --coral: #D85A30; --blue: #378ADD;
+  --amber: #EF9F27; --green: #97C459; --red: #E24B4A;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  --radius: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:var(--sans); background:var(--bg); color:var(--text); line-height:1.6; }
+nav {
+  position:fixed; top:0; left:0; width:260px; height:100vh; background:var(--bg2);
+  border-right:1px solid var(--border); overflow-y:auto; padding:20px 0; z-index:100;
+  scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+}
+nav .logo { padding:0 20px 16px; font-size:14px; font-weight:600; color:var(--accent); letter-spacing:-0.3px; border-bottom:1px solid var(--border); margin-bottom:12px; }
+nav .section-label { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text3); padding:12px 20px 4px; }
+nav a {
+  display:flex; align-items:center; gap:8px; padding:7px 20px; font-size:12.5px;
+  color:var(--text2); text-decoration:none; transition:all .15s; border-left:2px solid transparent;
+}
+nav a:hover { color:var(--text); background:rgba(255,255,255,0.03); }
+nav a.active { color:var(--accent); border-left-color:var(--accent); background:rgba(127,119,221,0.06); }
+nav a i { font-size:15px; opacity:.6; }
+main { margin-left:260px; padding:40px 48px 80px; max-width:900px; }
+h1 { font-size:28px; font-weight:600; letter-spacing:-0.5px; margin:0 0 6px; }
+h1 span { color:var(--accent); }
+.subtitle { font-size:14px; color:var(--text2); margin:0 0 40px; }
+.section { margin:0 0 56px; scroll-margin-top:32px; }
+.section h2 { font-size:18px; font-weight:600; color:var(--text); margin:0 0 4px; display:flex; align-items:center; gap:8px; }
+.section h2 .badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:500; }
+.section .desc { font-size:13px; color:var(--text2); margin:0 0 16px; line-height:1.7; }
+.widget-frame {
+  background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px; overflow:hidden;
+}
+.widget-frame .wf-title { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin:0 0 12px; display:flex; align-items:center; gap:6px; }
+.mode-toggle { display:inline-flex; gap:0; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.mode-btn { padding:6px 14px; font-size:12px; background:transparent; border:none; cursor:pointer; color:var(--text2); transition:all .15s; font-family:var(--sans); }
+.mode-btn.active { background:rgba(127,119,221,0.15); color:var(--accent); font-weight:500; }
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin:12px 0 0; }
+.stat-card { background:rgba(255,255,255,0.03); border-radius:8px; padding:10px 12px; }
+.stat-card .label { font-size:10px; color:var(--text3); margin:0 0 2px; }
+.stat-card .val { font-size:16px; font-weight:500; }
+.impact-row { display:flex; align-items:center; gap:8px; margin:5px 0; }
+.impact-label { font-size:11px; color:var(--text2); min-width:100px; text-align:right; }
+.impact-track { flex:1; height:8px; border-radius:4px; background:rgba(255,255,255,0.05); overflow:hidden; }
+.impact-fill { height:100%; border-radius:4px; transition:width .4s ease; }
+.impact-val { font-size:11px; font-weight:500; min-width:36px; text-align:right; }
+.slider-row { display:flex; align-items:center; gap:12px; margin:0 0 12px; }
+.slider-row label { font-size:12px; color:var(--text2); min-width:80px; }
+.slider-row input[type=range] { flex:1; accent-color:var(--accent); }
+.slider-row .val { font-size:13px; font-weight:500; min-width:40px; text-align:right; }
+.card-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0; }
+.info-card { padding:12px 14px; border-radius:8px; border:1px solid var(--border); }
+.info-card .ic-title { font-size:12px; font-weight:500; margin:0 0 4px; }
+.info-card .ic-body { font-size:11px; color:var(--text2); margin:0; line-height:1.5; }
+.term-row { padding:10px 14px; border-radius:8px; border:1px solid var(--border); margin:0 0 4px; cursor:pointer; transition:all .15s; }
+.term-row:hover { background:rgba(255,255,255,0.02); }
+.term-row.open { background:rgba(255,255,255,0.03); }
+.term-code { font-family:var(--mono); font-size:12px; font-weight:500; color:var(--teal); }
+.term-brief { font-size:12px; color:var(--text2); margin-left:12px; }
+.term-detail { font-size:12px; color:var(--text2); margin:8px 0 0; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; line-height:1.6; display:none; }
+.term-row.open .term-detail { display:block; }
+canvas { border-radius:8px; }
+.flow-block { border-radius:8px; padding:10px 12px; text-align:center; }
+.flow-block .fb-title { font-size:12px; font-weight:500; margin:0; }
+.flow-block .fb-sub { font-size:10px; margin:2px 0 0; opacity:.7; }
+.flow-arrow { text-align:center; color:var(--text3); font-size:14px; padding:3px 0; }
+.joint-bar { height:5px; border-radius:3px; margin:2px 0; transition:width .3s; }
+.frontier-card { padding:12px 14px; border-radius:8px; border:1px solid var(--border); margin:0 0 6px; cursor:pointer; transition:all .2s; }
+.frontier-card:hover { background:rgba(255,255,255,0.02); }
+.frontier-card.active { border-color:var(--accent); background:rgba(127,119,221,0.05); }
+.frontier-card .fc-detail { margin:8px 0 0; font-size:12px; color:var(--text2); line-height:1.6; display:none; }
+.frontier-card.active .fc-detail { display:block; }
+.fc-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-family:var(--mono); margin:2px; }
+.bar-row { display:flex; align-items:center; gap:8px; margin:0 0 8px; }
+.bar-label { font-size:11px; color:var(--text2); min-width:110px; text-align:right; }
+.bar-track { flex:1; height:26px; background:rgba(255,255,255,0.04); border-radius:6px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:6px; display:flex; align-items:center; padding:0 8px; transition:width .5s ease; }
+.bar-fill-text { font-size:10px; font-weight:500; color:#fff; white-space:nowrap; }
+.bottleneck-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:500; }
+.sm-cell { display:flex; align-items:center; justify-content:center; font-size:9px; font-family:var(--mono); color:var(--text2); background:rgba(127,119,221,0.2); border:0.5px solid rgba(127,119,221,0.35); border-radius:3px; min-height:20px; }
+.core-cell { aspect-ratio:1; border-radius:2px; background:rgba(93,202,165,0.3); border:0.5px solid rgba(93,202,165,0.45); }
+@media(max-width:800px) {
+  nav { display:none; }
+  main { margin-left:0; padding:20px; }
+}
+</style>
+</head>
+<body>
+<nav id="nav">
+  <div class="logo"><i class="ti ti-robot" style="font-size:16px"></i> Robotics &amp; VLA Reference</div>
+  <div class="section-label">Phase 2 — the data</div>
+  <a href="#aloha"><i class="ti ti-camera"></i> ALOHA data pipeline</a>
+  <div class="section-label">Phase 3 — ACT policy</div>
+  <a href="#chunking"><i class="ti ti-stack-2"></i> Action chunking</a>
+  <a href="#act-arch"><i class="ti ti-topology-star-ring-3"></i> ACT architecture</a>
+  <a href="#diffusion"><i class="ti ti-wave-sine"></i> Diffusion Policy</a>
+  <div class="section-label">Projects 1–3</div>
+  <a href="#roadmap"><i class="ti ti-map"></i> Four-project stack</a>
+  <a href="#vla"><i class="ti ti-eye"></i> VLA architecture</a>
+  <a href="#lora"><i class="ti ti-arrows-minimize"></i> LoRA fine-tuning</a>
+  <a href="#robustness"><i class="ti ti-shield-x"></i> Robustness testing</a>
+  <a href="#p2-results"><i class="ti ti-chart-line"></i> P2 measured results</a>
+  <a href="#p3-ci"><i class="ti ti-test-pipe"></i> P3 CI pipeline</a>
+  <div class="section-label">Project 4 — optimize</div>
+  <a href="#profiling"><i class="ti ti-clock-bolt"></i> Precision &amp; memory</a>
+  <a href="#p4-roofline"><i class="ti ti-chart-dots-3"></i> Roofline analysis</a>
+  <a href="#p4-phases"><i class="ti ti-list-numbers"></i> 14 phases</a>
+  <div class="section-label">Frontier &amp; growth</div>
+  <a href="#frontiers"><i class="ti ti-compass"></i> Five frontiers</a>
+  <a href="#pi0"><i class="ti ti-wave-sine"></i> π0 &amp; World Action Models</a>
+  <div class="section-label">GPU &amp; CUDA</div>
+  <a href="#status"><i class="ti ti-list-check"></i> Status annotated</a>
+  <a href="#gpu"><i class="ti ti-cpu"></i> GPU architecture</a>
+  <a href="#mlgpu"><i class="ti ti-chart-bar"></i> ML on GPU</a>
+</nav>
+
+<main>
+<h1>Robotics &amp; <span>VLA</span> Interactive Reference</h1>
+<p class="subtitle">All four projects complete and merged into main. Interactive demos, real measured results from an A10G, and a deep dive on the VLA frontier — π0 flow matching and World Action Models.</p>
+
+<!-- ═══════════ 1. ALOHA DATA PIPELINE ═══════════ -->
+<div class="section" id="aloha">
+<h2>ALOHA data pipeline <span class="badge" style="background:rgba(55,138,221,0.15);color:var(--blue)">Phase 2</span></h2>
+<p class="desc">Each frame of the ALOHA dataset captures three synchronized signals: what the robot sees (camera image), where its joints are (proprioception), and where the human wants them to go (action target). Drag the slider to scrub through a simulated episode.</p>
+<div class="widget-frame">
+  <div class="wf-title"><i class="ti ti-camera" style="font-size:13px"></i> Episode scrubber</div>
+  <div class="slider-row">
+    <label>Frame <strong id="fnum">200</strong>/400</label>
+    <input type="range" min="0" max="399" value="200" id="frame-slider" oninput="updateFrame(+this.value)">
+    <span class="val" id="ftime">4.00s</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+    <div>
+      <div style="font-size:11px;color:var(--text3);margin:0 0 4px"><i class="ti ti-camera" style="font-size:12px"></i> observation.images.top</div>
+      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a3a2e,#0d1f18);border-radius:8px;position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(255,255,255,.04) 19px,rgba(255,255,255,.04) 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,rgba(255,255,255,.04) 19px,rgba(255,255,255,.04) 20px)"></div>
+        <div id="cube1" style="width:14px;height:14px;background:var(--coral);border-radius:2px;position:absolute;left:55%;top:55%;transition:all .4s"></div>
+        <div id="grip-r" style="width:22px;height:16px;border:2px solid rgba(255,255,255,.4);border-radius:3px;position:absolute;right:20%;top:40%;transition:all .4s"></div>
+        <div id="grip-l" style="width:22px;height:16px;border:2px solid rgba(255,255,255,.4);border-radius:3px;position:absolute;left:15%;top:40%;transition:all .4s"></div>
+        <span style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,.4)">480×640 RGB</span>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text3);margin:0 0 4px"><i class="ti ti-axis-x" style="font-size:12px"></i> observation.state (14,)</div>
+      <div id="state-bars"></div>
+      <div style="font-size:10px;color:var(--text3);margin:4px 0 0">Where each joint IS right now</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text3);margin:0 0 4px"><i class="ti ti-target-arrow" style="font-size:12px"></i> action (14,)</div>
+      <div id="action-bars"></div>
+      <div style="font-size:10px;color:var(--text3);margin:4px 0 0">Where the human WANTS them to go</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 2. ACTION CHUNKING ═══════════ -->
+<div class="section" id="chunking">
+<h2>Action chunking vs single-step <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">Core concept</span></h2>
+<p class="desc">Standard behavioral cloning predicts one action per timestep — errors compound fast. ACT predicts a whole chunk of 100 future actions at once, committing to a coherent plan that slashes compounding error.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 12px">
+    <button class="mode-btn active" id="btn-single" onclick="setChunkMode('single')">Single-step BC</button>
+    <button class="mode-btn" id="btn-chunk" onclick="setChunkMode('chunk')">Action chunking (ACT)</button>
+  </div>
+  <p style="font-size:12px;color:var(--text2);margin:0 0 12px" id="chunk-desc">Each timestep, the policy predicts just the next action. Errors compound — one bad prediction shifts the robot off the demo distribution, and it snowballs.</p>
+  <canvas id="chunk-canvas" width="760" height="200" style="width:100%;background:rgba(255,255,255,0.02)"></canvas>
+  <div style="display:flex;gap:16px;margin:8px 0 0;font-size:11px;color:var(--text3)">
+    <span><span style="display:inline-block;width:10px;height:3px;background:var(--teal);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Accurate</span>
+    <span><span style="display:inline-block;width:10px;height:3px;background:var(--coral);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Drifted</span>
+    <span><span style="display:inline-block;width:10px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Expert demo</span>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label">Inference calls / episode</div><div class="val" id="cs-calls">400</div></div>
+    <div class="stat-card"><div class="label">Compounding error risk</div><div class="val" id="cs-error" style="color:var(--coral)">High</div></div>
+    <div class="stat-card"><div class="label">Reactivity</div><div class="val" id="cs-react">Frame-level</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 3. ACT ARCHITECTURE ═══════════ -->
+<div class="section" id="act-arch">
+<h2>ACT architecture <span class="badge" style="background:rgba(127,119,221,0.15);color:var(--accent)">52M params</span></h2>
+<p class="desc">ResNet-18 encodes the camera image into visual tokens; a transformer encoder-decoder produces the action chunk; a CVAE captures demonstration multimodality. Toggle between training and inference to see how the architecture changes.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 16px">
+    <button class="mode-btn active" id="act-btn-train" onclick="setActPhase('train')">Training</button>
+    <button class="mode-btn" id="act-btn-infer" onclick="setActPhase('infer')">Inference</button>
+  </div>
+  <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Inputs</div>
+  <div style="display:flex;gap:8px;margin:0 0 8px">
+    <div class="flow-block" style="flex:1;background:rgba(55,138,221,0.1)"><p class="fb-title" style="color:var(--blue)"><i class="ti ti-camera" style="font-size:13px"></i> Camera image</p><p class="fb-sub" style="color:rgba(55,138,221,.7)">(3, 480, 640)</p></div>
+    <div class="flow-block" style="flex:.7;background:rgba(55,138,221,0.1)"><p class="fb-title" style="color:var(--blue)"><i class="ti ti-axis-x" style="font-size:13px"></i> Joint state</p><p class="fb-sub" style="color:rgba(55,138,221,.7)">(14,)</p></div>
+    <div class="flow-block act-train-only" style="flex:.9;background:rgba(127,119,221,0.1);border:1px dashed rgba(127,119,221,.3);transition:opacity .3s"><p class="fb-title" style="color:var(--accent)"><i class="ti ti-route" style="font-size:13px"></i> Demo actions</p><p class="fb-sub" style="color:rgba(127,119,221,.6)">Train only — (100, 14)</p></div>
+  </div>
+  <div class="flow-arrow"><i class="ti ti-arrow-down"></i></div>
+  <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Encoders</div>
+  <div style="display:flex;gap:8px;margin:0 0 8px">
+    <div class="flow-block" style="flex:1;background:rgba(55,138,221,0.08)"><p class="fb-title" style="color:var(--blue)">ResNet-18</p><p class="fb-sub" style="color:rgba(55,138,221,.6)">Image → visual tokens</p></div>
+    <div class="flow-block" style="flex:.7;background:rgba(55,138,221,0.08)"><p class="fb-title" style="color:var(--blue)">Linear proj</p><p class="fb-sub" style="color:rgba(55,138,221,.6)">State → token</p></div>
+    <div class="flow-block act-train-only" style="flex:.9;background:rgba(127,119,221,0.08);border:1px dashed rgba(127,119,221,.25);transition:opacity .3s"><p class="fb-title" style="color:var(--accent)">CVAE encoder</p><p class="fb-sub" style="color:rgba(127,119,221,.5)">Actions → latent z</p></div>
+  </div>
+  <div class="flow-arrow"><i class="ti ti-arrow-down"></i></div>
+  <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Transformer</div>
+  <div style="display:flex;gap:8px;align-items:center;margin:0 0 8px">
+    <div class="flow-block" style="flex:1;background:rgba(93,202,165,0.08)"><p class="fb-title" style="color:var(--teal)">Transformer encoder</p><p class="fb-sub" style="color:rgba(93,202,165,.6)">Visual + state + z tokens</p></div>
+    <span style="color:var(--text3)">→</span>
+    <div class="flow-block" style="flex:1;background:rgba(93,202,165,0.08)"><p class="fb-title" style="color:var(--teal)">Transformer decoder</p><p class="fb-sub" style="color:rgba(93,202,165,.6)">Cross-attends to encoder</p></div>
+  </div>
+  <div class="flow-arrow"><i class="ti ti-arrow-down"></i></div>
+  <div class="flow-block" style="background:rgba(239,159,39,0.1)"><p class="fb-title" style="color:var(--amber)"><i class="ti ti-player-play" style="font-size:13px"></i> Action chunk (100, 14)</p><p class="fb-sub" style="color:rgba(239,159,39,.6)">Next 2 seconds of joint targets</p></div>
+  <div style="margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="act-callout">
+    <strong style="color:var(--text)">Training:</strong> The CVAE encoder compresses demo actions into a latent z capturing which "style" of solution this demo used. KL loss pushes z toward a standard normal so at inference, z = 0 gives a stable, decisive trajectory.
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 4. DIFFUSION POLICY ═══════════ -->
+<div class="section" id="diffusion">
+<h2>Diffusion Policy <span class="badge" style="background:rgba(216,90,48,0.15);color:var(--coral)">Iterative denoising</span></h2>
+<p class="desc">Unlike ACT's single forward pass, Diffusion Policy starts with pure noise and iteratively refines it into an expert-like action trajectory. More expressive for multimodal distributions, but costs N forward passes instead of one.</p>
+<div class="widget-frame">
+  <div class="slider-row">
+    <label id="dp-label" style="min-width:180px">Step 0 / 20 — pure noise</label>
+    <input type="range" min="0" max="20" value="0" step="1" id="dp-slider" oninput="updateDenoise(+this.value)">
+    <button onclick="animateDenoise()" style="font-size:12px;padding:4px 12px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer">Animate <i class="ti ti-player-play" style="font-size:11px"></i></button>
+  </div>
+  <canvas id="dp-canvas" width="760" height="200" style="width:100%;background:rgba(255,255,255,0.02);border-radius:8px"></canvas>
+  <div style="display:flex;gap:16px;margin:8px 0 0;font-size:11px;color:var(--text3)">
+    <span><span style="display:inline-block;width:12px;height:3px;background:var(--teal);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Expert trajectory</span>
+    <span><span style="display:inline-block;width:12px;height:3px;background:var(--coral);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Current prediction</span>
+  </div>
+  <div class="card-row" style="margin-top:12px">
+    <div class="info-card"><div class="ic-title" style="color:var(--blue)">ACT (1 forward pass)</div><div class="ic-body">Transformer decodes chunk in one shot. Fast (~5ms). Deterministic via CVAE mean.</div></div>
+    <div class="info-card"><div class="ic-title" style="color:var(--coral)">Diffusion Policy (N steps)</div><div class="ic-body">Iteratively refines from noise. Slower (~N × 5ms). Captures multimodal distributions faithfully.</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 5. PROJECT ROADMAP ═══════════ -->
+<div class="section" id="roadmap">
+<h2>Four-project stack <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">Roadmap</span></h2>
+<p class="desc">The four projects map to the four layers of a real robot software stack. Each gives you a different piece of the puzzle, building vertically from data to deployment.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 16px">
+    <button class="mode-btn active" id="proj-0" onclick="showProject(0)">P1: Data</button>
+    <button class="mode-btn" id="proj-1" onclick="showProject(1)">P2: Failure</button>
+    <button class="mode-btn" id="proj-2" onclick="showProject(2)">P3: Testing</button>
+    <button class="mode-btn" id="proj-3" onclick="showProject(3)">P4: Optimize</button>
+  </div>
+  <div id="project-layers"></div>
+  <div style="margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="project-detail">
+    <strong style="color:var(--text)">Project 1 — LeRobot + ACT/Diffusion Policy:</strong> Install LeRobot, pick a dataset from the Hub, train a policy, evaluate in MuJoCo. This teaches the full data-to-deployment pipeline.
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 6. VLA ARCHITECTURE ═══════════ -->
+<div class="section" id="vla">
+<h2>VLA architecture <span class="badge" style="background:rgba(127,119,221,0.15);color:var(--accent)">Vision + Language + Action</span></h2>
+<p class="desc">A VLA extends a pretrained vision-language model to also output robot actions. The language understanding means you can give it task instructions at runtime — the backbone does double duty for comprehension and motor control.</p>
+<div class="widget-frame">
+  <div style="font-size:10px;color:var(--text3);margin:0 0 8px">Click any block for details</div>
+  <div style="display:flex;gap:8px;margin:0 0 6px">
+    <div class="flow-block" style="flex:1;background:rgba(55,138,221,0.1);cursor:pointer" onclick="showVLA('vision')"><p class="fb-title" style="color:var(--blue)"><i class="ti ti-camera" style="font-size:13px"></i> Camera image</p><p class="fb-sub" style="color:rgba(55,138,221,.6)">RGB from wrist/overhead</p></div>
+    <div class="flow-block" style="flex:1;background:rgba(127,119,221,0.1);cursor:pointer" onclick="showVLA('lang')"><p class="fb-title" style="color:var(--accent)"><i class="ti ti-message" style="font-size:13px"></i> Task instruction</p><p class="fb-sub" style="color:rgba(127,119,221,.6)">"Pick up the red mug"</p></div>
+    <div class="flow-block" style="flex:.6;background:rgba(255,255,255,0.04);cursor:pointer" onclick="showVLA('proprio')"><p class="fb-title" style="color:var(--text)"><i class="ti ti-axis-x" style="font-size:13px"></i> Proprio</p><p class="fb-sub" style="color:var(--text2)">Joint state</p></div>
+  </div>
+  <div class="flow-arrow"><i class="ti ti-arrow-down"></i></div>
+  <div style="display:flex;gap:8px;margin:0 0 6px">
+    <div class="flow-block" style="flex:1;background:rgba(55,138,221,0.08);cursor:pointer" onclick="showVLA('venc')"><p class="fb-title" style="color:var(--blue)">Vision encoder (SigLIP)</p></div>
+    <div class="flow-block" style="flex:1.5;background:rgba(127,119,221,0.08);cursor:pointer" onclick="showVLA('llm')"><p class="fb-title" style="color:var(--accent)">LLM backbone (Llama 2 7B)</p><p class="fb-sub" style="color:rgba(127,119,221,.5)">Frozen + LoRA</p></div>
+  </div>
+  <div class="flow-arrow"><i class="ti ti-arrow-down"></i></div>
+  <div class="flow-block" style="background:rgba(239,159,39,0.1);cursor:pointer" onclick="showVLA('action')"><p class="fb-title" style="color:var(--amber)"><i class="ti ti-player-play" style="font-size:13px"></i> Action tokens → 7-DoF motor commands</p></div>
+  <div style="margin:10px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="vla-detail">
+    <strong style="color:var(--text)">Key insight:</strong> A pretrained VLM already understands objects and spatial relationships. By adding an action tokenizer, you get a policy that understands "pick up the red mug" as naturally as GPT understands "write me an email."
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 7. LoRA ═══════════ -->
+<div class="section" id="lora">
+<h2>LoRA fine-tuning <span class="badge" style="background:rgba(127,119,221,0.15);color:var(--accent)">Low-rank adaptation</span></h2>
+<p class="desc">Instead of updating all 7B parameters, LoRA freezes the weight matrix W and trains two tiny matrices A and B whose product approximates the update. ~1% of the memory, ~99% of the quality.</p>
+<div class="widget-frame">
+  <div class="slider-row">
+    <label>Rank r =</label>
+    <input type="range" min="1" max="64" value="16" step="1" id="rank-slider" oninput="updateLora(+this.value)">
+    <span class="val" id="rank-val">16</span>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
+    <div style="text-align:center"><canvas id="mat-w" width="100" height="100"></canvas><div style="font-size:10px;color:var(--text3);margin:4px 0">W (frozen)</div></div>
+    <span style="color:var(--text3);font-size:16px">+</span>
+    <div style="text-align:center"><canvas id="mat-b" width="100" height="100"></canvas><div style="font-size:10px;color:var(--text3);margin:4px 0">B <span id="b-size">4096×16</span></div></div>
+    <span style="color:var(--text3);font-size:16px">×</span>
+    <div style="text-align:center"><canvas id="mat-a" width="100" height="100"></canvas><div style="font-size:10px;color:var(--text3);margin:4px 0">A <span id="a-size">16×4096</span></div></div>
+    <span style="color:var(--text3);font-size:16px">=</span>
+    <div style="text-align:center"><canvas id="mat-r" width="100" height="100"></canvas><div style="font-size:10px;color:var(--text3);margin:4px 0">W+BA (effective)</div></div>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label">Original params</div><div class="val" id="lo-orig">16.8M</div></div>
+    <div class="stat-card"><div class="label">LoRA params</div><div class="val" id="lo-lora" style="color:var(--accent)">131K</div></div>
+    <div class="stat-card"><div class="label">Compression</div><div class="val" id="lo-ratio">128x</div></div>
+    <div class="stat-card"><div class="label">Memory saved</div><div class="val" id="lo-mem" style="color:var(--teal)">~99.2%</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 8. ROBUSTNESS ═══════════ -->
+<div class="section" id="robustness">
+<h2>Robustness testing <span class="badge" style="background:rgba(216,90,48,0.15);color:var(--coral)">Real measured data</span></h2>
+<p class="desc">Project 2's completed robustness study on OpenVLA-7B (LIBERO-Object, baseline 71%). We held the model fixed and degraded only what it sees — the measured curves below show exactly where the policy breaks. Drag the slider to explore each axis; the numbers are real experimental results from an A10G GPU.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 12px">
+    <button class="mode-btn active" id="deg-noise" onclick="selectDeg('noise')">Sensor noise</button>
+    <button class="mode-btn" id="deg-latency" onclick="selectDeg('latency')">Obs latency</button>
+    <button class="mode-btn" id="deg-drop" onclick="selectDeg('drop')">Frame drops</button>
+    <button class="mode-btn" id="deg-resolution" onclick="selectDeg('resolution')">Resolution</button>
+  </div>
+  <div class="slider-row">
+    <label id="deg-slider-label">Noise σ = <strong id="deg-level-text">0</strong></label>
+    <input type="range" min="0" max="7" value="0" step="1" id="deg-slider" oninput="updateDeg(+this.value)">
+    <span class="val" id="deg-val">70%</span>
+  </div>
+  <canvas id="deg-canvas" width="760" height="200" style="width:100%;background:rgba(255,255,255,0.02);border-radius:8px;margin:0 0 12px"></canvas>
+  <div id="deg-bars"></div>
+  <div style="margin:8px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="deg-explain"></div>
+</div>
+</div>
+
+<!-- ═══════════ 8b. P2 MEASURED RESULTS ═══════════ -->
+<div class="section" id="p2-results">
+<h2>P2: Measured robustness results <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">COMPLETE</span></h2>
+<p class="desc">Full experimental results from the OpenVLA-7B robustness study on LIBERO-Object (100 episodes per condition). Baselines: Object 71%, Spatial 88%. Four degradation axes swept on A10G GPU with fp16/SDPA and EGL rendering.</p>
+<div class="widget-frame">
+  <div class="wf-title"><i class="ti ti-chart-bar" style="font-size:13px"></i> Stacked deployment profiles</div>
+  <div id="p2-profiles"></div>
+  <div style="margin:16px 0 0;padding:12px 14px;background:rgba(216,90,48,0.06);border:1px solid rgba(216,90,48,0.15);border-radius:8px">
+    <div style="font-size:12px;font-weight:500;color:var(--coral);margin:0 0 4px"><i class="ti ti-alert-triangle" style="font-size:13px"></i> Fragility ranking</div>
+    <div style="font-size:13px;color:var(--text);font-family:var(--mono)">resolution &gt; latency &gt; noise &gt;&gt;&gt; frame-drops</div>
+    <div style="font-size:11px;color:var(--text2);margin:4px 0 0">Resolution is the steepest cliff (70%→15% at just 2× downsample). Frame drops are benign even at 50%.</div>
+  </div>
+  <div style="margin:16px 0 0">
+    <div class="wf-title"><i class="ti ti-shield-check" style="font-size:13px"></i> Operating envelope</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">SNR floor</div><div class="val" style="color:var(--teal)">σ &lt; 0.05</div></div>
+      <div class="stat-card"><div class="label">Latency budget</div><div class="val" style="color:var(--amber)">50 ms</div></div>
+      <div class="stat-card"><div class="label">Frame reliability</div><div class="val" style="color:var(--teal)">Any</div></div>
+      <div class="stat-card"><div class="label">Resolution floor</div><div class="val" style="color:var(--coral)">Native only</div></div>
+    </div>
+  </div>
+  <div style="margin:16px 0 0">
+    <div class="wf-title"><i class="ti ti-eye" style="font-size:13px"></i> Behavioral signatures</div>
+    <div class="card-row">
+      <div class="info-card"><div class="ic-title" style="color:var(--amber)">Latency</div><div class="ic-body">Oscillation → overshoot → timeout. The policy chases stale observations.</div></div>
+      <div class="info-card"><div class="ic-title" style="color:var(--coral)">Resolution</div><div class="ic-body">Can't resolve grasp targets. Reaches toward object but misses entirely.</div></div>
+    </div>
+    <div class="card-row">
+      <div class="info-card"><div class="ic-title" style="color:var(--accent)">Noise</div><div class="ic-body">Lock-on/lose bifurcation — converges or diverges, no middle ground.</div></div>
+      <div class="info-card"><div class="ic-title" style="color:var(--teal)">Frame drops</div><div class="ic-body">Benign. Policy relies on spatial features, not temporal continuity.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 8c. P3 CI PIPELINE ═══════════ -->
+<div class="section" id="p3-ci">
+<h2>P3: CI/CD test pipeline <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">COMPLETE</span></h2>
+<p class="desc">Four-tier GitHub Actions CI/CD pipeline, all live. ACT retrained to convergence (100k steps) → <strong style="color:var(--teal)">66% success</strong>. Tier 4 is the Project 2↔3 perturbation bridge: it runs P2's degradation module against the ACT policy on CPU and maps the robustness cliff. Merged via PRs #1, #2, #3.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 16px">
+    <button class="mode-btn active" id="ci-tier1" onclick="showCITier(1)">Tier 1: Lint + Unit</button>
+    <button class="mode-btn" id="ci-tier2" onclick="showCITier(2)">Tier 2: Docker Sim</button>
+    <button class="mode-btn" id="ci-tier3" onclick="showCITier(3)">Tier 3: Regression</button>
+    <button class="mode-btn" id="ci-tier4" onclick="showCITier(4)">Tier 4: Perturbation</button>
+  </div>
+  <div id="ci-tier-detail"></div>
+  <div style="margin:16px 0 0">
+    <div class="wf-title"><i class="ti ti-gauge" style="font-size:13px"></i> Measured metrics</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Unit tests</div><div class="val" style="color:var(--teal)">62</div></div>
+      <div class="stat-card"><div class="label">Tier 1 time</div><div class="val">&lt;3 min</div></div>
+      <div class="stat-card"><div class="label">p95 latency</div><div class="val" style="color:var(--teal)">~0.85 ms</div></div>
+      <div class="stat-card"><div class="label">WCET</div><div class="val">~222 ms</div></div>
+    </div>
+    <div class="stat-grid" style="margin-top:8px">
+      <div class="stat-card"><div class="label">Task success</div><div class="val" style="color:var(--teal)">66% (33/50)</div></div>
+      <div class="stat-card"><div class="label">Avg episode length</div><div class="val">330 steps</div></div>
+      <div class="stat-card"><div class="label">Success gate</div><div class="val" style="color:var(--accent)">≥ 40%</div></div>
+      <div class="stat-card"><div class="label">Determinism</div><div class="val" style="color:var(--teal)">Verified</div></div>
+    </div>
+  </div>
+  <div style="margin:16px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6">
+    <strong style="color:var(--text)">The bridge:</strong> Tier 4 reuses P2's degradation module (pure NumPy: noise, resolution, drops, latency) against the ACT policy — on CPU, no GPU needed. Validated: resolution sweep gives 1×→100%, 2×→100%, 4×→0% (cliff at 4×). The whole CI pyramid now answers both "does it work?" and "how gracefully does it degrade?" — merged via PRs #1, #2, #3.
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 9. P4: PRECISION · LATENCY · MEMORY ═══════════ -->
+<div class="section" id="profiling">
+<h2>P4: Precision · latency · memory <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">MEASURED · A10G</span></h2>
+<p class="desc">Real Project-4 results: OpenVLA-7B, 100 timed iterations per precision on an A10G (torch.cuda.Event timing). Toggle a precision — then watch the counterintuitive headline: quantization makes inference <em>slower</em>, and INT8 is worse than INT4 on every axis. Here, quantization buys memory, not speed.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 14px">
+    <button class="mode-btn active" id="prec-bf16" onclick="setPrec('bf16')">BF16</button>
+    <button class="mode-btn" id="prec-fp16" onclick="setPrec('fp16')">FP16</button>
+    <button class="mode-btn" id="prec-int8" onclick="setPrec('int8')">INT8</button>
+    <button class="mode-btn" id="prec-int4" onclick="setPrec('int4')">INT4</button>
+  </div>
+  <div id="prec-bars"></div>
+  <div class="stat-grid" style="margin-top:12px">
+    <div class="stat-card"><div class="label">Mean latency</div><div class="val" id="prec-lat">358.9 ms</div></div>
+    <div class="stat-card"><div class="label">Peak GPU memory</div><div class="val" id="prec-mem">15.5 GB</div></div>
+    <div class="stat-card"><div class="label">Cosine vs BF16</div><div class="val" id="prec-cos">1.000</div></div>
+    <div class="stat-card"><div class="label">Control freq</div><div class="val" id="prec-hz">2.79 Hz</div></div>
+  </div>
+  <div style="margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="prec-note"></div>
+  <div style="margin:14px 0 0;padding:12px 14px;background:rgba(216,90,48,0.06);border:1px solid rgba(216,90,48,0.15);border-radius:8px">
+    <div style="font-size:12px;font-weight:500;color:var(--coral);margin:0 0 4px"><i class="ti ti-alert-triangle" style="font-size:13px"></i> The INT8-vs-INT4 anomaly (reproduced)</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6">INT8 (1365 ms) is <strong>2.4× slower than INT4</strong> (572 ms). bitsandbytes' LLM.int8() splits each matmul into an INT8 path plus an FP16 outlier path with per-op quant/dequant — overhead that outweighs the bandwidth saved. INT4 (NF4) uses a lighter dequant-then-matmul kernel. Neither beats native BF16 tensor-core GEMMs.</div>
+  </div>
+  <div style="margin:16px 0 0">
+    <div class="wf-title"><i class="ti ti-layout-rows" style="font-size:13px"></i> Where BF16 latency goes — component breakdown (100 iters)</div>
+    <div id="p4-comp"></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 9b. P4: ROOFLINE ═══════════ -->
+<div class="section" id="p4-roofline">
+<h2>P4: Roofline analysis <span class="badge" style="background:rgba(127,119,221,0.15);color:var(--accent)">Why decode is the wall</span></h2>
+<p class="desc">The A10G's ridge point is where a kernel flips from memory-bound to compute-bound (peak compute ÷ 600 GB/s). Mapping OpenVLA's kernels onto it explains everything — the LLM decode is deeply memory-bound, which is why it dominates wall-clock and why quantizing <em>weights</em> is the theoretically correct lever.</p>
+<div class="widget-frame">
+  <div class="wf-title"><i class="ti ti-arrows-diff" style="font-size:13px"></i> A10G ridge points (FLOP / byte)</div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label">FP32</div><div class="val">52.0</div></div>
+    <div class="stat-card"><div class="label">FP16 / BF16</div><div class="val">104.2</div></div>
+    <div class="stat-card"><div class="label">INT8</div><div class="val">208.3</div></div>
+    <div class="stat-card"><div class="label">Bandwidth</div><div class="val">600 GB/s</div></div>
+  </div>
+  <div style="margin:14px 0 0">
+    <div class="wf-title"><i class="ti ti-cpu" style="font-size:13px"></i> Kernel arithmetic intensity (vs BF16 ridge = 104)</div>
+    <div class="card-row">
+      <div class="info-card" style="border-color:rgba(226,75,74,0.3)"><div class="ic-title" style="color:var(--red)">LLM decode · AI ≈ 1</div><div class="ic-body">~100× below the ridge → <strong>memory-bound</strong>. Each 7B weight is hauled from HBM for a single MAC per token.</div></div>
+      <div class="info-card" style="border-color:rgba(93,202,165,0.3)"><div class="ic-title" style="color:var(--teal)">LLM prefill · AI ≈ 250</div><div class="ic-body">2.4× above the ridge → <strong>compute-bound</strong>. ~281 prompt tokens amortize each weight read.</div></div>
+    </div>
+  </div>
+  <div style="margin:14px 0 0">
+    <div class="wf-title"><i class="ti ti-scale" style="font-size:13px"></i> The FLOPs-vs-time paradox</div>
+    <div id="p4-paradox"></div>
+    <div style="margin:8px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6">Decode does <strong>2.1% of the arithmetic but 59% of the wall-clock</strong> — tensor cores idle ~99% of decode while weights stream from HBM. (Validated: analytic 3.79 TFLOP/step matched the profiler's <code style="font-family:var(--mono)">aten::mm</code> exactly.) This is the bottleneck that flow-matching VLAs like π0 sidestep — see below.</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ 9c. P4: 14 PHASES ═══════════ -->
+<div class="section" id="p4-phases">
+<h2>P4: 14 phases, piece by piece <span class="badge" style="background:rgba(239,159,39,0.15);color:var(--amber)">Click to expand</span></h2>
+<p class="desc">The full Project-4 arc, scaffold to report — each phase committed and pushed, with figures + JSON under Andarna-p4/. Click any phase for the measured result.</p>
+<div class="widget-frame">
+  <div id="p4-phase-list"></div>
+</div>
+</div>
+
+<!-- ═══════════ 10. FIVE FRONTIERS ═══════════ -->
+<div class="section" id="frontiers">
+<h2>Five frontier growth areas <span class="badge" style="background:rgba(93,202,165,0.15);color:var(--teal)">After the 4 projects</span></h2>
+<p class="desc">Where to grow after the four-project foundation — each area tied back to what P4 measured, and forward to the live frontier (Physical Intelligence π0, World Action Models). Click any card to expand; the π0 deep dive follows below.</p>
+<div class="widget-frame" id="frontier-container"></div>
+</div>
+
+<!-- ═══════════ 10b. π0 & WORLD ACTION MODELS ═══════════ -->
+<div class="section" id="pi0">
+<h2>π0 flow matching &amp; World Action Models <span class="badge" style="background:rgba(127,119,221,0.15);color:var(--accent)">The frontier, connected to P4</span></h2>
+<p class="desc">P4 found the wall: OpenVLA's <em>autoregressive</em> action decode is memory-bound and 59% of latency, capping the policy at ~2.8 Hz. The frontier's answer is to stop decoding actions token-by-token. Physical Intelligence's π0 replaces the discrete action tokenizer with a <strong>flow-matching action head</strong> that generates the whole action chunk in just 1–10 denoising steps — reaching 50 Hz. Toggle the two approaches.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 12px">
+    <button class="mode-btn active" id="flow-ar" onclick="setFlowMode('ar')">OpenVLA — autoregressive</button>
+    <button class="mode-btn" id="flow-fm" onclick="setFlowMode('flow')">π0 — flow matching</button>
+  </div>
+  <div class="slider-row" id="flow-slider-row" style="display:none">
+    <label>Flow steps</label>
+    <input type="range" min="1" max="10" value="4" id="flow-steps" oninput="drawFlow(+this.value)">
+    <span class="val" id="flow-steps-val">4</span>
+  </div>
+  <canvas id="flow-canvas" width="760" height="180" style="width:100%;background:rgba(255,255,255,0.02);border-radius:8px"></canvas>
+  <div class="stat-grid" style="margin-top:12px">
+    <div class="stat-card"><div class="label">Generation</div><div class="val" id="flow-gen">Autoregressive</div></div>
+    <div class="stat-card"><div class="label">Sequential steps</div><div class="val" id="flow-seq">7 tokens</div></div>
+    <div class="stat-card"><div class="label">Action head</div><div class="val" id="flow-head" style="font-size:13px">Discrete tokens</div></div>
+    <div class="stat-card"><div class="label">Control freq</div><div class="val" id="flow-hz" style="color:var(--red)">~2.8 Hz</div></div>
+  </div>
+  <div style="margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6" id="flow-note"></div>
+</div>
+<div class="widget-frame" style="margin-top:12px">
+  <div class="wf-title"><i class="ti ti-cpu-2" style="font-size:13px"></i> Anatomy of the π-family (Physical Intelligence)</div>
+  <div id="pi-terms"></div>
+</div>
+<div class="widget-frame" style="margin-top:12px">
+  <div class="wf-title"><i class="ti ti-world" style="font-size:13px"></i> The other paradigm — World Action Models (WAMs)</div>
+  <div style="font-size:12px;color:var(--text2);line-height:1.7">Where a VLA maps image + language → action, a <strong style="color:var(--text)">World Action Model</strong> is built on a pretrained <strong>video-diffusion backbone</strong>: it learns physical dynamics by predicting how the world will <em>look</em> next, then conditions actions on that imagined future — "pretrained to imagine, fine-tuned to act." Because the backbone already encodes physics from internet-scale video, WAMs can serve as <strong>zero-shot policies</strong> and as their own simulators / data generators. It is the convergence of the world-model line (Dreamer, Genie, NVIDIA Cosmos) with action, and the main structural alternative to the flow-matching VLA line that π0 leads. The field's arc: single-task policies (2022) → multi-task VLAs (2023) → cross-embodiment generalists like π0 (2024–25) → whole-body humanoid control and WAMs (2026).</div>
+</div>
+</div>
+
+<!-- ═══════════ 11. STATUS ANNOTATED ═══════════ -->
+<div class="section" id="status">
+<h2>Status update annotated <span class="badge" style="background:rgba(55,138,221,0.15);color:var(--blue)">Measured results</span></h2>
+<p class="desc">Click any term to expand its detailed explanation. Phase 0 covers GPU setup. Task A shows OpenVLA robustness findings (real measured data). Task B shows CI/CD pipeline metrics.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 12px">
+    <button class="mode-btn active" id="st-p0" onclick="showStatusPhase('p0')">Phase 0: GPU</button>
+    <button class="mode-btn" id="st-a" onclick="showStatusPhase('a')">Task A: OpenVLA</button>
+    <button class="mode-btn" id="st-b" onclick="showStatusPhase('b')">Task B: CI/CD</button>
+  </div>
+  <div id="status-terms"></div>
+</div>
+</div>
+
+<!-- ═══════════ 12. GPU ARCHITECTURE ═══════════ -->
+<div class="section" id="gpu">
+<h2>GPU architecture (A10G) <span class="badge" style="background:rgba(127,119,221,0.15);color:var(--accent)">CUDA deep dive</span></h2>
+<p class="desc">Navigate from the full chip through one SM, the memory hierarchy, and the CUDA execution model.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 16px">
+    <button class="mode-btn active" id="gpu-chip" onclick="showGPU('chip')">Full chip</button>
+    <button class="mode-btn" id="gpu-sm" onclick="showGPU('sm')">Inside one SM</button>
+    <button class="mode-btn" id="gpu-mem" onclick="showGPU('mem')">Memory hierarchy</button>
+    <button class="mode-btn" id="gpu-exec" onclick="showGPU('exec')">Execution model</button>
+  </div>
+  <div id="gpu-view" style="min-height:240px"></div>
+</div>
+</div>
+
+<!-- ═══════════ 13. ML ON GPU ═══════════ -->
+<div class="section" id="mlgpu">
+<h2>ML inference on GPU <span class="badge" style="background:rgba(239,159,39,0.15);color:var(--amber)">Forward pass trace</span></h2>
+<p class="desc">Trace a VLA forward pass through the GPU hardware. Switch precision to see how tensor cores activate and memory bandwidth changes. Click any stage for hardware details.</p>
+<div class="widget-frame">
+  <div class="mode-toggle" style="margin:0 0 16px">
+    <button class="mode-btn active" id="ml-fp32" onclick="setMLPrec('fp32')">FP32</button>
+    <button class="mode-btn" id="ml-fp16" onclick="setMLPrec('fp16')">FP16</button>
+    <button class="mode-btn" id="ml-int8" onclick="setMLPrec('int8')">INT8</button>
+    <button class="mode-btn" id="ml-4bit" onclick="setMLPrec('4bit')">4-bit</button>
+  </div>
+  <div id="ml-stages"></div>
+  <div style="display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px">
+    <span style="font-size:12px;color:var(--text2)">Total per step:</span>
+    <span style="font-size:18px;font-weight:500" id="ml-total">820ms</span>
+    <span style="font-size:12px;color:var(--text3)" id="ml-hz">→ 1.2 Hz</span>
+  </div>
+</div>
+</div>
+
+</main>
+
+<script>
+// ═══════════ NAV HIGHLIGHTING ═══════════
+const sections = document.querySelectorAll('.section');
+const navLinks = document.querySelectorAll('nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) {
+    navLinks.forEach(l => l.classList.remove('active'));
+    const link = document.querySelector('nav a[href="#'+e.target.id+'"]');
+    if(link) link.classList.add('active');
+  }});
+}, {rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s => observer.observe(s));
+
+// ═══════════ 1. ALOHA ═══════════
+function makeJointBars(id) {
+  const el = document.getElementById(id);
+  let html = '';
+  for(let a=0;a<2;a++) for(let j=0;j<7;j++) {
+    const c = a===0?'var(--coral)':'var(--teal)';
+    html += '<div class="joint-bar" id="'+id+'-'+a+'-'+j+'" style="background:'+c+';opacity:0.5;width:50%"></div>';
+  }
+  el.innerHTML = html;
+}
+makeJointBars('state-bars'); makeJointBars('action-bars');
+function updateFrame(f) {
+  document.getElementById('fnum').textContent = f;
+  document.getElementById('ftime').textContent = (f/50).toFixed(2)+'s';
+  const t = f/399;
+  const phase = t<.3?'reach':t<.5?'grasp':t<.7?'transfer':t<.85?'release':'done';
+  const cube=document.getElementById('cube1'),gr=document.getElementById('grip-r'),gl=document.getElementById('grip-l');
+  if(phase==='reach'){cube.style.left='55%';cube.style.top='55%';gr.style.right=(20-t*30)+'%';gr.style.top=(40+t*30)+'%';gl.style.left='15%';gl.style.top='40%'}
+  else if(phase==='grasp'){cube.style.left='55%';cube.style.top='55%';gr.style.right='11%';gr.style.top='49%';gl.style.left='15%';gl.style.top='40%'}
+  else if(phase==='transfer'){const p=(t-.5)/.2;cube.style.left=(55-p*25)+'%';cube.style.top=(55-p*10)+'%';gr.style.right=(11+p*8)+'%';gr.style.top=(49-p*6)+'%';gl.style.left=(15+p*12)+'%';gl.style.top=(40+p*5)+'%'}
+  else{cube.style.left='30%';cube.style.top='45%';gr.style.right='25%';gr.style.top='38%';gl.style.left='27%';gl.style.top='45%'}
+  for(let a=0;a<2;a++) for(let j=0;j<7;j++){
+    const seed=a*7+j*13+1;const base=30+Math.sin(t*Math.PI*2+seed)*25+Math.cos(t*Math.PI+seed*.7)*15;
+    const s=document.getElementById('state-bars-'+a+'-'+j); if(s)s.style.width=Math.max(8,Math.min(95,base))+'%';
+    const ab=document.getElementById('action-bars-'+a+'-'+j); if(ab)ab.style.width=Math.max(8,Math.min(95,base+3+Math.sin(t*Math.PI*3+seed)*4))+'%';
+  }
+}
+updateFrame(200);
+
+// ═══════════ 2. ACTION CHUNKING ═══════════
+let chunkMode = 'single';
+function setChunkMode(m) {
+  chunkMode = m;
+  document.getElementById('btn-single').classList.toggle('active',m==='single');
+  document.getElementById('btn-chunk').classList.toggle('active',m==='chunk');
+  document.getElementById('chunk-desc').textContent = m==='single'
+    ? 'Each timestep, the policy predicts just the next action. Errors compound — one bad prediction snowballs.'
+    : 'The policy predicts 100 actions at once (a 2-second plan). Overlapping chunks get averaged for smooth motion.';
+  document.getElementById('cs-calls').textContent = m==='single'?'400':'~40';
+  document.getElementById('cs-error').textContent = m==='single'?'High':'Low';
+  document.getElementById('cs-error').style.color = m==='single'?'var(--coral)':'var(--teal)';
+  document.getElementById('cs-react').textContent = m==='single'?'Frame-level':'~0.2s chunks';
+  drawChunking();
+}
+function seededRandom(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return s/2147483647}}
+function drawChunking(){
+  const c=document.getElementById('chunk-canvas'),ctx=c.getContext('2d');
+  const W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
+  const STEPS=50,rng=seededRandom(42);
+  for(let row=0;row<6;row++){
+    const y0=10+row*(H-20)/6,rowH=(H-20)/6-2;
+    if(chunkMode==='single'){
+      let drift=0;
+      for(let t=0;t<STEPS;t++){
+        if(rng()<.08+drift*.15)drift=Math.min(drift+.2,1); else drift=Math.max(drift-.05,0);
+        ctx.fillStyle=drift>.4?'rgba(216,90,48,'+(0.4+drift*.4)+')':'rgba(93,202,165,'+(0.4+(1-drift)*.4)+')';
+        ctx.fillRect(10+t*(W-20)/STEPS,y0,(W-20)/STEPS-1,rowH);
+      }
+    } else {
+      for(let t=0;t<STEPS;t++){
+        const isBound=t%6===0;
+        ctx.fillStyle=rng()<.04?'rgba(216,90,48,0.5)':'rgba(93,202,165,0.5)';
+        ctx.fillRect(10+t*(W-20)/STEPS,y0,(W-20)/STEPS-1,rowH);
+        if(isBound){ctx.fillStyle='rgba(127,119,221,0.6)';ctx.fillRect(10+t*(W-20)/STEPS,y0,2,rowH)}
+      }
+    }
+  }
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  for(let t=0;t<STEPS;t++) ctx.fillRect(10+t*(W-20)/STEPS,H-16,(W-20)/STEPS-1,10);
+}
+drawChunking();
+
+// ═══════════ 3. ACT ARCHITECTURE ═══════════
+function setActPhase(p){
+  document.getElementById('act-btn-train').classList.toggle('active',p==='train');
+  document.getElementById('act-btn-infer').classList.toggle('active',p==='infer');
+  document.querySelectorAll('.act-train-only').forEach(el=>{el.style.opacity=p==='train'?'1':'0.15'});
+  document.getElementById('act-callout').innerHTML = p==='train'
+    ? '<strong style="color:var(--text)">Training:</strong> The CVAE encoder compresses demo actions into a latent z. KL loss pushes z toward standard normal. Total loss = L1 reconstruction + β·KL.'
+    : '<strong style="color:var(--text)">Inference:</strong> No demos available — z is set to 0 (the mean). One forward pass produces 100 target joint positions. Execute a few, then re-plan. Overlapping predictions averaged = temporal ensembling.';
+}
+
+// ═══════════ 4. DIFFUSION POLICY ═══════════
+const dpN=50,dpNoise=Array.from({length:dpN},()=>(seededRandom(42+Math.random()*100)()-.5)*2);
+const dpExpert=[];for(let i=0;i<dpN;i++){const t=i/(dpN-1);dpExpert.push(.3*Math.sin(t*Math.PI*2.5)+.15*Math.sin(t*Math.PI*5)+.1*Math.cos(t*Math.PI*1.2))}
+function drawDP(points,ctx,color,lw,dashed){
+  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.setLineDash(dashed?[4,4]:[]);
+  points.forEach((v,i)=>{const x=30+(i/(dpN-1))*700,y=20+80-v*70;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.stroke();ctx.setLineDash([]);
+}
+function updateDenoise(step){
+  const labels=['pure noise','mostly noise','emerging','shape forming','rough trajectory','refining','coarse path','clearer','getting there','more detail','halfway','sharpening','refining details','nearly clean','fine-tuning','polishing','almost done','last touches','final refine','last polish','denoised'];
+  document.getElementById('dp-label').textContent='Step '+step+' / 20 — '+labels[step];
+  const c=document.getElementById('dp-canvas'),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(30,100);ctx.lineTo(730,100);ctx.stroke();
+  drawDP(dpExpert,ctx,'rgba(93,202,165,0.7)',1.5,true);
+  const alpha=step/20;
+  const traj=dpNoise.map((n,i)=>n*(1-alpha)+dpExpert[i]*alpha+(1-alpha)*.15*Math.sin(i*.8+step*.3));
+  drawDP(traj,ctx,'#D85A30',2,false);
+}
+let dpAnimating=false;
+function animateDenoise(){
+  if(dpAnimating)return;dpAnimating=true;const sl=document.getElementById('dp-slider');sl.value=0;updateDenoise(0);
+  let step=0;const iv=setInterval(()=>{step++;sl.value=step;updateDenoise(step);if(step>=20){clearInterval(iv);dpAnimating=false}},180);
+}
+updateDenoise(0);
+
+// ═══════════ 5. PROJECT ROADMAP ═══════════
+const projColors=['rgba(55,138,221,','rgba(216,90,48,','rgba(93,202,165,','rgba(127,119,221,'];
+const projNames=['Data pipeline + training \u2713','Robustness analysis \u2713','Test infrastructure \u2713','Inference optimization \u2713'];
+const projDetails=[
+  '<strong style="color:var(--text)">Project 1 \u2014 LeRobot + ACT <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Full pipeline: ALOHA dataset \u2192 ACT training \u2192 MuJoCo eval. Retrained to convergence (100k steps, A10G) \u2192 <strong>66% success</strong> (33/50). Checkpoint on HF Hub (zoeyeballard/act-aloha-cube). Merged into main.',
+  '<strong style="color:var(--text)">Project 2 \u2014 OpenVLA Robustness <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Robustness envelope of OpenVLA-7B on LIBERO (Object 71%, Spatial 88%). Four degradation axes + stacked profiles. Fragility: resolution > latency > noise \u226B drops. 50 ms latency budget. Merged into main via PR #2.',
+  '<strong style="color:var(--text)">Project 3 \u2014 CI/CD Test Infrastructure <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Three-tier GitHub Actions pipeline \u2014 all tiers live. 66% baseline (retrained ACT), success gate \u226540%, p95 latency + regression gating. Docker/OSMesa. Merged into main via PR #1.',
+  '<strong style="color:var(--text)">Project 4 \u2014 Inference Optimization <span style="color:var(--teal)">\u2713 COMPLETE + MERGED</span>:</strong> Profiled OpenVLA-7B across 14 phases on an A10G \u2014 CUDA-event timing, PyTorch Profiler, Nsight/NVTX, precision sweep, roofline. Findings: LLM \u2248 94% of latency; <strong>quantization buys memory, not speed</strong> (INT8 3.8\u00D7 slower, INT4 1.6\u00D7 / 0.31\u00D7 memory); ~2.8 Hz at BF16. Merged into main as Andarna-p4/ via PR #4.'
+];
+function showProject(idx){
+  for(let i=0;i<4;i++) document.getElementById('proj-'+i).classList.toggle('active',i===idx);
+  let html='';
+  for(let i=3;i>=0;i--){
+    const active=i===idx;const c=projColors[i];
+    html+='<div style="display:flex;align-items:stretch;border-radius:8px;overflow:hidden;margin:0 0 3px;opacity:'+(active?'1':'.25')+';transition:all .3s">';
+    html+='<div style="width:36px;background:'+c+'0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:'+c+'1)">'+(i+1)+'</div>';
+    html+='<div style="flex:1;padding:8px 12px;background:'+c+'0.06)"><div style="font-size:12px;font-weight:500;color:'+c+'1)">'+projNames[i]+'</div></div></div>';
+  }
+  document.getElementById('project-layers').innerHTML=html;
+  document.getElementById('project-detail').innerHTML=projDetails[idx];
+}
+showProject(0);
+
+// ═══════════ 6. VLA ═══════════
+const vlaDetails={
+  vision:'<strong style="color:var(--text)">Camera image:</strong> RGB from overhead/wrist cameras. Gets chunked into patches and encoded by a vision transformer. OpenVLA uses SigLIP — a contrastive encoder that already "knows" objects before robot training.',
+  lang:'<strong style="color:var(--text)">Task instruction:</strong> A natural-language string. This is what makes VLAs different — the policy can follow arbitrary instructions at runtime without retraining.',
+  proprio:'<strong style="color:var(--text)">Proprioception:</strong> Joint positions, velocities, gripper state. Tells the model where the arm currently is.',
+  venc:'<strong style="color:var(--text)">Vision encoder (SigLIP):</strong> Converts camera image into visual tokens. Pretrained on millions of image-text pairs, so it already encodes "red mug" and "left side of table."',
+  llm:'<strong style="color:var(--text)">LLM backbone (Llama 2 7B):</strong> Processes visual + language tokens, then autoregressively generates action tokens. Mostly frozen — only LoRA adapters are trained.',
+  action:'<strong style="color:var(--text)">Action tokens:</strong> The LLM outputs discrete tokens from an action tokenizer. A detokenizer converts them back into continuous 7-DoF joint targets.'
+};
+function showVLA(k){document.getElementById('vla-detail').innerHTML=vlaDetails[k]}
+
+// ═══════════ 7. LoRA ═══════════
+const dim=4096;
+function drawMatrix(cid,w,h,color,frozen){
+  const c=document.getElementById(cid),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,100,100);ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(0,0,100,100);
+  const sw=Math.min(90,w/dim*90),sh=Math.min(90,h/dim*90),x=(100-sw)/2,y=(100-sh)/2;
+  ctx.fillStyle=color;ctx.globalAlpha=frozen?.25:.55;ctx.fillRect(x,y,sw,sh);ctx.globalAlpha=1;
+  ctx.strokeStyle=color;ctx.lineWidth=frozen?0:1.5;if(!frozen)ctx.strokeRect(x,y,sw,sh);
+  if(frozen){ctx.setLineDash([3,3]);ctx.strokeStyle='rgba(255,255,255,.15)';ctx.strokeRect(x,y,sw,sh);ctx.setLineDash([])}
+}
+function updateLora(r){
+  document.getElementById('rank-val').textContent=r;
+  const orig=dim*dim,lora=dim*r*2,ratio=Math.round(orig/lora),pct=((1-lora/orig)*100).toFixed(1);
+  document.getElementById('lo-orig').textContent=(orig/1e6).toFixed(1)+'M';
+  document.getElementById('lo-lora').textContent=lora>=1e6?(lora/1e6).toFixed(1)+'M':Math.round(lora/1e3)+'K';
+  document.getElementById('lo-ratio').textContent=ratio+'x';
+  document.getElementById('lo-mem').textContent='~'+pct+'%';
+  document.getElementById('b-size').textContent=dim+'×'+r;
+  document.getElementById('a-size').textContent=r+'×'+dim;
+  drawMatrix('mat-w',dim,dim,'#888780',true);
+  drawMatrix('mat-b',r,dim,'#7F77DD',false);
+  drawMatrix('mat-a',dim,r,'#7F77DD',false);
+  drawMatrix('mat-r',dim,dim,'#5DCAA5',false);
+}
+updateLora(16);
+
+// ═══════════ 8. ROBUSTNESS ═══════════
+const degData={
+  noise:{levels:[0,.01,.02,.05,.10,.15,.20,.30],success:[70,70,70,65,45,0,0,0],unit:'σ',
+    finding:'Sharp cliff at σ=0.10→0.15 (45%→0%). Below σ=0.05, noise is invisible to the policy. Behavioral: lock-on/lose bifurcation — the policy either converges or diverges with no middle ground.',
+    labelFn:v=>'σ = '+v},
+  latency:{levels:[0,1,2,3,5,8,10],success:[70,65,55,35,0,0,0],unit:'steps',
+    finding:'Linear degradation 0→3 steps, then cliff to 0% at 5 steps. At 20 Hz, each step = 50 ms. Latency budget: 50 ms (1 step). Behavioral: oscillation → overshoot → timeout.',
+    labelFn:v=>v+' step'+(v!==1?'s':'')},
+  drop:{levels:[0,.05,.10,.20,.30,.50],success:[70,70,65,60,65,70],unit:'rate',
+    finding:'FLAT curve — frame drops are benign. Even at 50% drop rate, success remains at baseline (70%). The policy is robust to temporal gaps because it relies on spatial features, not motion.',
+    labelFn:v=>Math.round(v*100)+'%'},
+  resolution:{levels:[1,2,4,8],success:[70,15,0,0],unit:'× downsample',
+    finding:'Steepest cliff of all axes: 2× downsample drops from 70%→15%. At 4× the policy is blind. Resolution is the #1 fragility. The policy cannot resolve grasp targets at low resolution.',
+    labelFn:v=>v+'×'}
+};
+let degMode='noise';
+function selectDeg(m){
+  degMode=m;['noise','latency','drop','resolution'].forEach(k=>{const el=document.getElementById('deg-'+k);if(el)el.classList.toggle('active',k===m)});
+  const d=degData[m];
+  document.getElementById('deg-slider').max=d.levels.length-1;
+  document.getElementById('deg-slider').value=0;
+  updateDeg(0);
+}
+function updateDeg(idx){
+  const d=degData[degMode],level=d.levels[idx],success=d.success[idx];
+  document.getElementById('deg-slider-label').innerHTML=(degMode==='noise'?'Noise σ':degMode==='latency'?'Latency':degMode==='drop'?'Drop rate':'Resolution')+' = <strong>'+d.labelFn(level)+'</strong>';
+  document.getElementById('deg-val').textContent=success+'%';
+  const clr=s=>s>=60?'var(--teal)':s>=20?'var(--amber)':'var(--red)';
+  document.getElementById('deg-bars').innerHTML='<div class="impact-row"><span class="impact-label">Task success</span><div class="impact-track"><div class="impact-fill" style="width:'+success+'%;background:'+clr(success)+'"></div></div><span class="impact-val" style="color:'+clr(success)+'">'+success+'%</span></div>'
+    +'<div class="impact-row"><span class="impact-label">vs baseline</span><div class="impact-track"><div class="impact-fill" style="width:'+(success/70*100)+'%;background:'+clr(success)+'"></div></div><span class="impact-val" style="color:'+clr(success)+'">'+Math.round(success/70*100)+'%</span></div>';
+  const c=document.getElementById('deg-canvas'),ctx=c.getContext('2d');
+  const W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
+  const n=d.levels.length,barW=Math.min(80,(W-80)/n-8),startX=(W-(n*(barW+8)-8))/2;
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=.5;
+  ctx.beginPath();ctx.moveTo(20,H-30);ctx.lineTo(W-20,H-30);ctx.stroke();
+  ctx.font='10px Inter,sans-serif';ctx.textAlign='center';
+  for(let i=0;i<n;i++){
+    const x=startX+i*(barW+8),barH=(d.success[i]/100)*(H-60),y=H-30-barH;
+    const s=d.success[i],col=s>=60?'rgba(93,202,165,':s>=20?'rgba(239,159,39,':'rgba(226,75,74,';
+    ctx.fillStyle=col+(i===idx?'0.8)':'0.4)');
+    ctx.fillRect(x,y,barW,barH);
+    if(i===idx){ctx.strokeStyle=col+'1)';ctx.lineWidth=2;ctx.strokeRect(x,y,barW,barH);ctx.lineWidth=.5}
+    ctx.fillStyle=i===idx?'var(--text)':'rgba(255,255,255,0.5)';
+    ctx.fillText(d.success[i]+'%',x+barW/2,y-6);
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText(d.labelFn(d.levels[i]),x+barW/2,H-16);
+  }
+  ctx.fillStyle='rgba(216,90,48,0.4)';ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(216,90,48,0.6)';ctx.lineWidth=1;
+  const baseY=H-30-(70/100)*(H-60);ctx.beginPath();ctx.moveTo(20,baseY);ctx.lineTo(W-20,baseY);ctx.stroke();
+  ctx.setLineDash([]);ctx.fillStyle='rgba(216,90,48,0.6)';ctx.textAlign='left';ctx.fillText('baseline 71%',W-80,baseY-4);
+  document.getElementById('deg-explain').innerHTML='<strong style="color:var(--text)">'+(['Noise','Latency','Frame drops','Resolution'][['noise','latency','drop','resolution'].indexOf(degMode)])+':</strong> '+d.finding;
+}
+selectDeg('noise');
+
+// ═══════════ 9. P4: PRECISION · LATENCY · MEMORY ═══════════
+const precData={
+  bf16:{lat:358.9,mem:'15.5 GB',cos:'1.000',hz:'2.79 Hz',c:'#5DCAA5',
+    note:'<strong style="color:var(--text)">BF16 — baseline.</strong> Native Ampere BF16 tensor-core GEMMs, the fastest path. 358.7 ms mean, p95 363.7 ms, peak 15.5 GB → ~2.79 Hz.'},
+  fp16:{lat:359.9,mem:'15.5 GB',cos:'0.997',hz:'2.78 Hz',c:'#378ADD',
+    note:'<strong style="color:var(--text)">FP16 — a free swap.</strong> Indistinguishable from BF16 on every axis (cosine 0.997, identical 15.5 GB, ~same latency). On Ampere the two half-precision formats are interchangeable here.'},
+  int8:{lat:1365.1,mem:'8.5 GB',cos:'0.953',hz:'0.73 Hz',c:'#E24B4A',
+    note:'<strong style="color:var(--text)">INT8 — worst of all four.</strong> 3.8× slower than BF16. LLM.int8() mixed-precision decomposition (INT8 path + FP16 outlier path + per-op quant/dequant) costs more than the bandwidth it saves. Strictly dominated by INT4.'},
+  int4:{lat:572.1,mem:'4.7 GB',cos:'0.899',hz:'1.75 Hz',c:'#EF9F27',
+    note:'<strong style="color:var(--text)">INT4 — the one quantization win, and only for memory.</strong> 1.6× slower but 0.31× memory (4.7 GB). NF4 weights cut HBM traffic. Use it only to <em>fit</em> the model on constrained edge memory; expect a behavioral hit (worst-case cosine 0.74, concentrated in end-effector positioning).'}
+};
+const precOrder=['bf16','fp16','int8','int4'];
+function setPrec(p){
+  precOrder.forEach(k=>document.getElementById('prec-'+k).classList.toggle('active',k===p));
+  const maxLat=1400;
+  let html='';precOrder.forEach(k=>{const d=precData[k],w=Math.max(4,d.lat/maxLat*100),on=k===p;
+    html+='<div class="bar-row"><div class="bar-label">'+k.toUpperCase()+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+d.c+';opacity:'+(on?1:0.4)+'"><span class="bar-fill-text">'+d.lat+' ms</span></div></div></div>';
+  });
+  document.getElementById('prec-bars').innerHTML=html;
+  const d=precData[p];
+  document.getElementById('prec-lat').textContent=d.lat+' ms';
+  document.getElementById('prec-mem').textContent=d.mem;
+  document.getElementById('prec-cos').textContent=d.cos;
+  document.getElementById('prec-hz').textContent=d.hz;
+  document.getElementById('prec-hz').style.color=parseFloat(d.hz)>=2.5?'var(--teal)':parseFloat(d.hz)>=1.5?'var(--amber)':'var(--red)';
+  document.getElementById('prec-note').innerHTML=d.note;
+}
+// component breakdown (BF16, measured)
+(function(){
+  const comp=[{n:'Vision encoder',ms:19.4,pct:5.5,c:'#378ADD'},{n:'MLP projector',ms:0.8,pct:0.2,c:'#16a085'},
+    {n:'LLM prefill',ms:123.9,pct:34.9,c:'#EF9F27'},{n:'LLM decode',ms:210.6,pct:59.4,c:'#E24B4A'},
+    {n:'overhead',ms:5.2,pct:1.4,c:'#888780'}];
+  document.getElementById('p4-comp').innerHTML=comp.map(s=>
+    '<div class="bar-row"><div class="bar-label">'+s.n+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(3,s.pct)+'%;background:'+s.c+'"><span class="bar-fill-text">'+s.ms+' ms · '+s.pct+'%</span></div></div></div>').join('');
+})();
+// FLOPs-vs-time paradox bars
+(function(){
+  const rows=[{l:'Prefill — FLOPs',v:97.9,c:'#5DCAA5'},{l:'Prefill — time',v:34.9,c:'#378ADD'},
+    {l:'Decode — FLOPs',v:2.1,c:'#5DCAA5'},{l:'Decode — time',v:59.4,c:'#E24B4A'}];
+  document.getElementById('p4-paradox').innerHTML=rows.map(r=>
+    '<div class="bar-row"><div class="bar-label">'+r.l+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(3,r.v)+'%;background:'+r.c+'"><span class="bar-fill-text">'+r.v+'%</span></div></div></div>').join('');
+})();
+setPrec('bf16');
+
+// P4 14-phase walkthrough
+const p4Phases=[
+  ['1','Baseline latency','torch.cuda.Event over 20 warmup + 100 timed steps: 358.7 ms mean / p95 363.7 / max 368.4, peak 15.5 GB → ~2.79 Hz. CV 0.6% within-run.'],
+  ['2','Component breakdown','CUDA-event forward hooks on the 4 stages: Vision 5.5% · Projector 0.2% · Prefill 34.9% · Decode 59.4%. The LLM is ~94% of latency.'],
+  ['3','PyTorch Profiler','aten::mm = 86% of self-CUDA time, all on ampere_bf16_s16816gemm tensor-core kernels. Flash attention active via SDPA (1.8%). KV-cache cat is the top memory op.'],
+  ['4','Nsight Systems / NVTX','Clean NVTX-annotated runner (4 stage ranges) bounded by cudaProfilerStart/Stop; 5.5 MB .nsys-rep for the Nsight GUI. Confirmed all four bands.'],
+  ['5','Precision sweep','BF16 359 / FP16 360 / INT8 1365 (3.8×) / INT4 572 ms; memory 15.5 / 15.5 / 8.5 / 4.7 GB. Quantization buys memory, not speed.'],
+  ['6','Accuracy + behavioral','Cosine vs BF16: FP16 0.997 · INT8 0.953 · INT4 0.899. Gripper-flip hypothesis refuted — error is in translation deltas (dz worst). LIBERO-Object: BF16 80% / FP16 70% / INT4 60% (n=10, within noise).'],
+  ['8','torch.compile','reduce-overhead ERRORS during tracing — the Llama attention can\'t expand its dynamic causal mask (query 281 vs KV 280). The autoregressive-VLA caveat, live. No speedup.'],
+  ['9','Batch scaling','End-to-end generation is batch-1-locked (model asserts batch==1 in decode). The batchable prefill forward scales 7.0→12.1 items/s (B1→8), saturating by B=2.'],
+  ['10','Memory stability','500 iterations, memory byte-identical at every checkpoint (+0.0 MB drift) → leak-free, bounded. The determinism an embedded deployment needs.'],
+  ['11','Reproducibility','5 fresh-process runs → cross-run CV 0.093% of mean latency, ~50× under the 5% threshold. Every single-run number is trustworthy.'],
+  ['12','Roofline analysis','Ridge points FP32 52 / BF16 104 / INT8 208 FLOP/byte. Decode AI≈1 (memory-bound), prefill≈250 (compute-bound). Decode = 2% of FLOPs / 59% of time.'],
+  ['13','Summary figures','5 charts (latency / memory / accuracy / control-Hz vs precision + BF16 component split) generated from the committed JSON — CPU-only.'],
+  ['14','Final report','PROFILING_REPORT.md: exec summary, specs, baseline, components, quantization, optimization, deployment recs, and an embedded-systems perspective (Jetson / FPGA / RTOS).']
+];
+document.getElementById('p4-phase-list').innerHTML=p4Phases.map(p=>
+  '<div class="term-row" onclick="this.classList.toggle(\'open\')"><div style="display:flex;align-items:center;gap:10px"><span style="width:22px;height:22px;border-radius:50%;background:rgba(239,159,39,0.18);color:var(--amber);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0">'+p[0]+'</span><span class="term-code" style="color:var(--text)">'+p[1]+'</span></div><div class="term-detail">'+p[2]+'</div></div>').join('');
+
+// ═══════════ 10. FIVE FRONTIERS ═══════════
+const frontiers=[
+  {t:'Parallel action generation — flow matching & diffusion',s:'The fix for autoregressive decode (the P4 wall)',c:'var(--accent)',tags:['π0 flow-matching','FAST','LLaDA-VLA','discrete diffusion'],detail:'P4 showed autoregressive token decode is memory-bound and 59% of latency. The frontier generates the whole action chunk at once instead. Physical Intelligence π0 uses a flow-matching action head (1–10 steps → 50 Hz); discrete-diffusion VLAs mask-and-unmask action tokens in parallel. Both turn ~7 sequential weight-reads into a few — the single biggest inference-latency lever for VLAs. Deep dive in the section below.'},
+  {t:'Reasoning & hierarchical VLAs',s:'Think a subtask, then act',c:'var(--coral)',tags:['π0.5','ECoT','CoT-VLA','System 1/2'],detail:'Reactive VLAs struggle on long horizons. Hierarchical policies predict a high-level textual subtask, then the low-level action — exactly the π0.5 two-stage inference. Embodied chain-of-thought (ECoT) makes the spatial reasoning explicit. The System-1 / System-2 split (slow deliberative planner + fast reactive actor) is becoming the production architecture, and maps onto the P4 recommendation of a slow policy running under a fast servo loop.'},
+  {t:'World Action Models & world models',s:'Pretrained to imagine, fine-tuned to act',c:'var(--teal)',tags:['WAM','NVIDIA Cosmos','Genie','DreamerV3'],detail:'World models predict how the world evolves; World Action Models (WAMs) build on video-diffusion backbones to predict future states AND actions, acting as zero-shot policies and their own data generators. NVIDIA Cosmos, Genie, and Dreamer anchor the world-model line. WAMs are the main structural alternative to the flow-matching VLA line — see the deep dive below.'},
+  {t:'Efficient VLAs & edge deployment',s:'7B that runs on a robot, in real time',c:'var(--amber)',tags:['Jetson Orin','NF4 / AWQ','TensorRT-LLM','distillation'],detail:'The P4 roofline says it plainly: decode is bandwidth-bound, so on a memory-starved edge GPU (Jetson Orin ~68–204 GB/s vs A10G 600) a 7B VLA is too slow, and BF16 will not even fit on an 8 GB Orin Nano. The levers: distill generalist teachers into small experts, quantize weights with a proper fused kernel (not bitsandbytes), and FAST-style action compression. CUDA/kernel profiling — the rare skill P4 builds — separates a working edge deployment from a dead one.'},
+  {t:'Learning from experience (RL fine-tuning)',s:'Past the imitation ceiling',c:'var(--blue)',tags:['π0.6','SimpleVLA-RL','RLVR','autonomy'],detail:'Imitation learning caps at demo quality. RL fine-tuning lets a policy discover behaviors better than its demos and recover from its own mistakes — π0.6 (Nov 2025) explicitly learns from experience. The open problems are reward design and safety at scale; this is where simulation (frontier 3) and on-robot autonomy meet.'}
+];
+function renderFrontiers(){
+  let html='';frontiers.forEach((f,i)=>{
+    html+='<div class="frontier-card" id="fc-'+i+'" onclick="toggleFrontier('+i+')"><div style="display:flex;align-items:center;gap:8px"><div style="width:24px;height:24px;border-radius:50%;background:'+f.c+';opacity:.2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:'+f.c+'">'+(i+1)+'</div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">'+f.t+'</div><div style="font-size:11px;color:var(--text2)">'+f.s+'</div></div><i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px"></i></div><div class="fc-detail"><p style="margin:0 0 6px">'+f.detail+'</p><div>'+f.tags.map(t=>'<span class="fc-tag" style="background:'+f.c+';opacity:.15;color:'+f.c+'">'+t+'</span>').join('')+'</div></div></div>';
+  });
+  document.getElementById('frontier-container').innerHTML=html;
+}
+function toggleFrontier(i){
+  const c=document.getElementById('fc-'+i),was=c.classList.contains('active');
+  document.querySelectorAll('.frontier-card').forEach(c=>c.classList.remove('active'));
+  if(!was)c.classList.add('active');
+}
+renderFrontiers();
+
+// ═══════════ 11. STATUS ANNOTATED ═══════════
+const statusData={
+  p0:[['nvidia-driver-595-open','Open-source GPU kernel module v595. DKMS auto-rebuilds on kernel updates.'],['DKMS','Dynamic Kernel Module Support — auto-recompiles driver when kernel updates.'],['persistence mode','Keeps driver loaded between GPU jobs, eliminating 2-5s cold-start.'],['nvidia-smi','CLI tool showing GPU model, temp, memory, processes. Proves full stack works.'],['A10G (23 GB)','Ampere GPU. 80 SMs, 320 tensor cores, 10,752 CUDA cores, 600 GB/s bandwidth.'],['CUDA 13.2','Max CUDA toolkit version this driver supports.']],
+  a:[['Baseline: Object 71%','100 episodes on LIBERO-Object suite, 71/100 success. The reference point for all degradation sweeps.'],['Baseline: Spatial 88%','44/50 success on LIBERO-Spatial — easier tasks with more spatial cues.'],['fp16 / SDPA / EGL','Half-precision with scaled_dot_product_attention fallback + headless EGL rendering. Production config on A10G.'],['Noise cliff: σ=0.10→0.15','Success drops 45%→0%. Below σ=0.05 noise is invisible. Lock-on/lose bifurcation behavior.'],['Latency budget: 50 ms','1 step at 20 Hz. Linear degradation 0→3 steps, then cliff at 5 steps. Causes oscillation→overshoot→timeout.'],['Resolution: steepest cliff','70%→15% at just 2× downsample. 4× is total failure. #1 fragility axis.'],['Frame drops: benign','Flat curve even at 50% drop rate. Policy relies on spatial features, not temporal continuity.'],['Fragility ranking','resolution > latency > noise >>> frame-drops. Determines deployment sensor priorities.'],['Most fragile task','"pick up the bbq sauce" — 0.20 mean success across conditions.'],['Most robust task','"pick up the ketchup" — 0.54 mean success across conditions.']],
+  b:[['Merged via PRs #1, #2, #3','All projects merged into main. Four CI tiers live on GitHub Actions.'],['ACT retrained: 66%','100k steps on A10G → 66% success (33/50). Checkpoint on HF Hub (zoeyeballard/act-aloha-cube).'],['Four-tier CI (all live)','Tier 1: lint+62 unit tests. Tier 2: Docker sim eval. Tier 3: regression check. Tier 4: perturbation sweep (P2↔P3 bridge).'],['Tier 4: perturbation bridge','Reuses P2\'s degradation module (pure NumPy) against ACT policy on CPU. Maps robustness cliff. Validated: resolution cliff at 4×.'],['Success gate: ≥40%','Conservative floor below 66% operating point. Seed-locked eval = deterministic, not flaky.'],['p95 latency: ~0.85 ms','Steady-state inference latency. Well within any real-time budget.'],['Docker fixes landed','libgl1-mesa-glx→libgl1 (Debian trixie), evdev build deps, torchvision CPU index, lerobot pinned to 0.4.4.'],['62 unit tests','6 new perturbation tests added (hook + cliff logic). All pass; ruff+mypy clean.'],['Per-PR check: 80% (4/5)','5-episode deterministic profile scores 0.80, passes 0.10-tolerance regression gate vs 0.66 baseline.']]
+};
+let statusPhase='p0';
+function showStatusPhase(p){
+  statusPhase=p;['p0','a','b'].forEach(k=>document.getElementById('st-'+k).classList.toggle('active',k===p));
+  let html='';statusData[p].forEach((t,i)=>{
+    html+='<div class="term-row" onclick="this.classList.toggle(\'open\')"><div><span class="term-code">'+t[0]+'</span></div><div class="term-detail">'+t[1]+'</div></div>';
+  });
+  document.getElementById('status-terms').innerHTML=html;
+}
+showStatusPhase('p0');
+
+// ═══════════ 12. GPU ARCHITECTURE ═══════════
+function showGPU(level){
+  ['chip','sm','mem','exec'].forEach(k=>document.getElementById('gpu-'+k).classList.toggle('active',k===level));
+  const el=document.getElementById('gpu-view');
+  if(level==='chip'){
+    let grid='';for(let i=0;i<80;i++)grid+='<div class="sm-cell">SM'+i+'</div>';
+    el.innerHTML='<div style="font-size:11px;color:var(--text3);margin:0 0 8px">80 Streaming Multiprocessors</div><div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px">'+grid+'</div><div class="stat-grid"><div class="stat-card"><div class="label">CUDA cores</div><div class="val">10,752</div></div><div class="stat-card"><div class="label">Tensor cores</div><div class="val">320</div></div><div class="stat-card"><div class="label">Memory</div><div class="val">24 GB</div></div><div class="stat-card"><div class="label">Bandwidth</div><div class="val">600 GB/s</div></div></div><p style="font-size:12px;color:var(--text2);margin:12px 0 0;line-height:1.6">Each SM is a self-contained processor. The GPU distributes thread blocks across all 80 SMs for massive parallelism.</p>';
+  } else if(level==='sm'){
+    let cores='';for(let i=0;i<128;i++)cores+='<div class="core-cell"></div>';
+    el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:11px;color:var(--teal);margin:0 0 6px">128 CUDA cores (FP32)</div><div style="display:grid;grid-template-columns:repeat(16,1fr);gap:1px">'+cores+'</div><p style="font-size:11px;color:var(--text2);margin:6px 0 0">All 128 process in lockstep within warps of 32 threads.</p></div><div><div style="font-size:11px;color:var(--amber);margin:0 0 6px">4 tensor cores</div><div style="display:flex;gap:4px">'+[0,1,2,3].map(i=>'<div style="flex:1;height:28px;border-radius:4px;background:rgba(239,159,39,.15);border:1px solid rgba(239,159,39,.3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text2)">TC'+i+'</div>').join('')+'</div><p style="font-size:11px;color:var(--text2);margin:6px 0 0">4×4 matrix multiply units. 8x faster for FP16/INT8.</p><div style="margin:12px 0 0;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:6px;font-size:11px;color:var(--text2);line-height:1.6">64 KB registers (fastest)<br>128 KB shared mem / L1<br>4 warp schedulers<br>Up to 1,536 threads active</div></div></div>';
+  } else if(level==='mem'){
+    const bars=[{l:'Registers',lat:'0 cycles',w:'100%',c:'var(--teal)'},{l:'Shared / L1',lat:'~20 cycles',w:'85%',c:'var(--teal)'},{l:'L2 cache',lat:'~200 cycles',w:'55%',c:'var(--blue)'},{l:'GDDR6 (global)',lat:'~400 cycles',w:'25%',c:'var(--coral)'}];
+    el.innerHTML=bars.map(b=>'<div style="display:flex;align-items:center;gap:8px;margin:5px 0"><span style="font-size:11px;color:var(--text2);min-width:100px;text-align:right">'+b.l+'</span><div style="flex:1;height:22px;border-radius:6px;background:rgba(255,255,255,.04);overflow:hidden"><div style="height:100%;width:'+b.w+';background:'+b.c+';border-radius:6px;display:flex;align-items:center;padding:0 8px"><span style="font-size:10px;font-weight:500;color:#fff">'+b.lat+'</span></div></div></div>').join('')+'<p style="font-size:12px;color:var(--text2);margin:12px 0 0;line-height:1.6"><strong style="color:var(--text)">This hierarchy is why optimization matters.</strong> GDDR6 is 400× slower than registers. FP16 halves bytes = doubles effective bandwidth. FlashAttention keeps data in shared memory instead of global memory.</p>';
+  } else {
+    el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="padding:12px;border:1px solid var(--border);border-radius:8px"><div style="font-size:12px;font-weight:500;margin:0 0 6px">1 warp = 32 threads</div><div style="display:flex;flex-wrap:wrap;gap:2px">'+Array.from({length:32},()=>'<div style="width:14px;height:14px;border-radius:2px;background:rgba(127,119,221,.25);border:.5px solid rgba(127,119,221,.4)"></div>').join('')+'</div><p style="font-size:11px;color:var(--text2);margin:6px 0 0">All 32 execute the same instruction on different data (SIMT). Branch divergence kills performance.</p></div><div style="padding:12px;border:1px solid var(--border);border-radius:8px"><div style="font-size:12px;font-weight:500;margin:0 0 6px">1 block = N warps on 1 SM</div><div style="display:flex;flex-wrap:wrap;gap:3px">'+[0,1,2,3,4,5,6,7].map(w=>'<div style="padding:3px 8px;border-radius:3px;background:rgba(93,202,165,.1);font-size:10px;color:var(--text2)">W'+w+'</div>').join('')+'</div><p style="font-size:11px;color:var(--text2);margin:6px 0 0">Threads within a block share memory and sync. Block size: usually 128 or 256 threads.</p></div></div><p style="font-size:12px;color:var(--text2);margin:12px 0 0;line-height:1.6"><strong style="color:var(--text)">Grid</strong> = all blocks for one kernel launch. The GPU distributes blocks across all 80 SMs. Blocks are independent — they execute in any order. This is how GPU parallelism scales.</p>';
+  }
+}
+showGPU('chip');
+
+// ═══════════ 13. ML ON GPU ═══════════
+const mlStages=[
+  {n:'Image preprocessing',c:'#888780',times:{fp32:5,fp16:5,int8:5,'4bit':5}},
+  {n:'Vision encoder (ViT)',c:'#378ADD',times:{fp32:120,fp16:65,int8:45,'4bit':50}},
+  {n:'LLM backbone (7B)',c:'#7F77DD',times:{fp32:580,fp16:280,int8:160,'4bit':200}},
+  {n:'Action head',c:'#EF9F27',times:{fp32:15,fp16:8,int8:6,'4bit':8}},
+  {n:'Host transfer',c:'#888780',times:{fp32:2,fp16:2,int8:2,'4bit':2}}
+];
+function setMLPrec(p){
+  ['fp32','fp16','int8','4bit'].forEach(k=>document.getElementById('ml-'+k).classList.toggle('active',k===p));
+  let total=0,html='';const maxT=mlStages.reduce((m,s)=>Math.max(m,s.times.fp32),0);
+  mlStages.forEach(s=>{const ms=s.times[p];total+=ms;const pct=ms/maxT*80;
+    html+='<div class="bar-row"><div class="bar-label">'+s.n+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(3,pct)+'%;background:'+s.c+'"><span class="bar-fill-text">'+ms+'ms</span></div></div></div>';
+  });
+  document.getElementById('ml-stages').innerHTML=html;
+  document.getElementById('ml-total').textContent=total+'ms';
+  document.getElementById('ml-hz').textContent='→ '+(1000/total).toFixed(1)+' Hz';
+}
+setMLPrec('fp32');
+
+// ═══════════ 8b. P2 MEASURED RESULTS ═══════════
+(function(){
+  const profiles=[
+    {name:'Lab (clean)',success:90,desc:'No degradation applied',color:'var(--teal)'},
+    {name:'Field (mild)',success:55,desc:'σ=0.05, 1-step latency, 10% drops',color:'var(--blue)'},
+    {name:'Challenging field',success:20,desc:'σ=0.10, 2-step latency, 20% drops',color:'var(--amber)'},
+    {name:'High-stress field',success:0,desc:'σ=0.15, 3-step latency, 30% drops',color:'var(--red)'}
+  ];
+  let html='';profiles.forEach(p=>{
+    const w=Math.max(2,p.success);
+    html+='<div style="display:flex;align-items:center;gap:10px;margin:0 0 8px"><span style="font-size:11px;color:var(--text2);min-width:130px;text-align:right">'+p.name+'</span><div style="flex:1;height:28px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden"><div style="height:100%;width:'+w+'%;background:'+p.color+';border-radius:6px;display:flex;align-items:center;padding:0 8px;transition:width .5s"><span style="font-size:10px;font-weight:500;color:#fff;white-space:nowrap">'+p.success+'%</span></div></div><span style="font-size:11px;color:var(--text3);min-width:180px">'+p.desc+'</span></div>';
+  });
+  document.getElementById('p2-profiles').innerHTML=html;
+})();
+
+// ═══════════ 8c. P3 CI PIPELINE ═══════════
+const ciTiers={
+  1:{title:'Tier 1: Lint + Unit Tests',time:'<3 min',catches:'Import errors, type bugs, API contract violations, shape mismatches',
+    detail:'<div style="display:flex;gap:8px;margin:0 0 12px"><div class="flow-block" style="flex:1;background:rgba(93,202,165,0.08)"><p class="fb-title" style="color:var(--teal)">ruff lint</p><p class="fb-sub" style="color:rgba(93,202,165,.6)">Style + imports</p></div><div class="flow-block" style="flex:1;background:rgba(93,202,165,0.08)"><p class="fb-title" style="color:var(--teal)">pytest (62 tests)</p><p class="fb-sub" style="color:rgba(93,202,165,.6)">Unit + integration</p></div><div class="flow-block" style="flex:1;background:rgba(93,202,165,0.08)"><p class="fb-title" style="color:var(--teal)">type check</p><p class="fb-sub" style="color:rgba(93,202,165,.6)">Shape validation</p></div></div>'},
+  2:{title:'Tier 2: Docker Simulation Eval',time:'<15 min',catches:'Policy regressions, physics issues, rendering failures, OOM',
+    detail:'<div style="display:flex;gap:8px;margin:0 0 12px"><div class="flow-block" style="flex:1;background:rgba(55,138,221,0.08)"><p class="fb-title" style="color:var(--blue)">Docker build</p><p class="fb-sub" style="color:rgba(55,138,221,.6)">python:3.12-slim + OSMesa</p></div><div class="flow-block" style="flex:1;background:rgba(55,138,221,0.08)"><p class="fb-title" style="color:var(--blue)">MuJoCo eval</p><p class="fb-sub" style="color:rgba(55,138,221,.6)">CPU inference + sim</p></div><div class="flow-block" style="flex:1;background:rgba(55,138,221,0.08)"><p class="fb-title" style="color:var(--blue)">Metrics gate</p><p class="fb-sub" style="color:rgba(55,138,221,.6)">p95 ≤ threshold</p></div></div>'},
+  3:{title:'Tier 3: Regression Check',time:'<15 min',catches:'Performance regressions vs stored baseline, latency spikes, determinism failures',
+    detail:'<div style="display:flex;gap:8px;margin:0 0 12px"><div class="flow-block" style="flex:1;background:rgba(127,119,221,0.08)"><p class="fb-title" style="color:var(--accent)">Load baseline</p><p class="fb-sub" style="color:rgba(127,119,221,.6)">Previous metrics JSON</p></div><div class="flow-block" style="flex:1;background:rgba(127,119,221,0.08)"><p class="fb-title" style="color:var(--accent)">Compare</p><p class="fb-sub" style="color:rgba(127,119,221,.6)">Δ latency, success</p></div><div class="flow-block" style="flex:1;background:rgba(127,119,221,0.08)"><p class="fb-title" style="color:var(--accent)">Gate</p><p class="fb-sub" style="color:rgba(127,119,221,.6)">Fail if regression</p></div></div>'},
+  4:{title:'Tier 4: Perturbation Sweep (P2↔P3 Bridge)',time:'<60 min',catches:'Robustness drift — sensor noise, resolution loss, frame drops, latency. Maps the success-rate cliff on CPU.',
+    detail:'<div style="display:flex;gap:8px;margin:0 0 12px"><div class="flow-block" style="flex:1;background:rgba(216,90,48,0.08)"><p class="fb-title" style="color:var(--coral)">P2 degradations</p><p class="fb-sub" style="color:rgba(216,90,48,.6)">Pure NumPy module</p></div><div class="flow-block" style="flex:1;background:rgba(216,90,48,0.08)"><p class="fb-title" style="color:var(--coral)">Perturb obs</p><p class="fb-sub" style="color:rgba(216,90,48,.6)">noise/res/drop/delay</p></div><div class="flow-block" style="flex:1;background:rgba(216,90,48,0.08)"><p class="fb-title" style="color:var(--coral)">Find cliff</p><p class="fb-sub" style="color:rgba(216,90,48,.6)">Map success curve</p></div></div><div style="padding:8px 12px;background:rgba(255,255,255,.02);border-radius:6px;font-size:11px;color:var(--text2);margin:0 0 8px"><strong style="color:var(--coral)">Validated:</strong> resolution sweep → 1×:100%, 2×:100%, 4×:0% (cliff at 4×). Runs on CPU — P2\'s degradation module is pure NumPy; no GPU needed.</div>'}
+};
+function showCITier(t){
+  [1,2,3,4].forEach(k=>{const el=document.getElementById('ci-tier'+k);if(el)el.classList.toggle('active',k===t)});
+  const d=ciTiers[t];
+  document.getElementById('ci-tier-detail').innerHTML=d.detail
+    +'<div style="padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px"><div style="font-size:11px;color:var(--text3);margin:0 0 4px">'+d.title+' · '+d.time+'</div><div style="font-size:12px;color:var(--text2);line-height:1.6"><strong style="color:var(--text)">Catches:</strong> '+d.catches+'</div></div>';
+}
+showCITier(1);
+
+// ═══════════ 10b. π0 FLOW MATCHING vs AUTOREGRESSIVE ═══════════
+let flowMode='ar';
+function setFlowMode(m){
+  flowMode=m;
+  document.getElementById('flow-ar').classList.toggle('active',m==='ar');
+  document.getElementById('flow-fm').classList.toggle('active',m==='flow');
+  document.getElementById('flow-slider-row').style.display=m==='flow'?'flex':'none';
+  if(m==='ar'){
+    document.getElementById('flow-gen').textContent='Autoregressive';
+    document.getElementById('flow-seq').textContent='7 tokens';
+    document.getElementById('flow-head').textContent='Discrete tokens';
+    const hz=document.getElementById('flow-hz');hz.textContent='~2.8 Hz';hz.style.color='var(--red)';
+    document.getElementById('flow-note').innerHTML='<strong style="color:var(--text)">OpenVLA / discrete-token style:</strong> the LLM emits one action token at a time. Each of the ~7 steps re-reads the full 7B weight set from HBM for a single token — memory-bound, tensor cores ~99% idle. This is exactly the P4 decode bottleneck (59% of latency).';
+    drawFlowAR();
+  } else {
+    drawFlow(+document.getElementById('flow-steps').value);
+  }
+}
+function drawFlowAR(){
+  const c=document.getElementById('flow-canvas'),ctx=c.getContext('2d'),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
+  const n=7,bw=64,gap=20,startX=(W-(n*(bw+gap)-gap))/2,y=H/2-22;
+  ctx.font='11px Inter,sans-serif';ctx.textAlign='center';
+  for(let i=0;i<n;i++){const x=startX+i*(bw+gap);
+    ctx.fillStyle='rgba(226,75,74,'+(0.22+i*0.07)+')';ctx.strokeStyle='rgba(226,75,74,0.7)';ctx.lineWidth=1;
+    ctx.fillRect(x,y,bw,44);ctx.strokeRect(x,y,bw,44);
+    ctx.fillStyle='#fff';ctx.fillText('tok '+(i+1),x+bw/2,y+27);
+    if(i<n-1){ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fillText('→',x+bw+gap/2,y+27)}
+  }
+  ctx.fillStyle='rgba(255,255,255,0.45)';ctx.fillText('sequential — each token = one full 7B weight read from HBM (memory-bound)',W/2,y+78);
+}
+const fmExpert=[];for(let i=0;i<50;i++){const t=i/49;fmExpert.push(.32*Math.sin(t*Math.PI*2.2)+.13*Math.cos(t*Math.PI*1.4))}
+const fmNoise=fmExpert.map((_,i)=>(seededRandom(99+i*7)()-.5)*1.6);
+function drawFlow(steps){
+  document.getElementById('flow-steps-val').textContent=steps;
+  document.getElementById('flow-gen').textContent='Flow matching';
+  document.getElementById('flow-seq').textContent=steps+' step'+(steps!==1?'s':'');
+  document.getElementById('flow-head').textContent='Continuous (action expert)';
+  const hzv=steps<=4?50:Math.round(50*4/steps);
+  const hz=document.getElementById('flow-hz');hz.textContent='~'+hzv+' Hz';hz.style.color=hzv>=10?'var(--teal)':'var(--amber)';
+  document.getElementById('flow-note').innerHTML='<strong style="color:var(--text)">π0 flow matching:</strong> the action head starts from noise and integrates a learned vector field to the full action chunk in '+steps+' step'+(steps!==1?'s':'')+' — generating <em>all</em> 7 DoF at once, not token-by-token. Straight-path flow matching converges in ~1–10 steps, so a small "action expert" samples at up to 50 Hz. The structural fix for P4\'s memory-bound decode.';
+  const c=document.getElementById('flow-canvas'),ctx=c.getContext('2d'),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(20,H/2);ctx.lineTo(W-20,H/2);ctx.stroke();
+  const draw=(pts,col,lw,dash)=>{ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash?[4,4]:[]);pts.forEach((v,i)=>{const x=20+(i/49)*(W-40),yy=H/2-v*55;i===0?ctx.moveTo(x,yy):ctx.lineTo(x,yy)});ctx.stroke();ctx.setLineDash([])};
+  draw(fmExpert,'rgba(93,202,165,0.7)',1.5,true);
+  const alpha=steps/10,traj=fmNoise.map((nz,i)=>nz*(1-alpha)+fmExpert[i]*alpha);
+  draw(traj,'#7F77DD',2,false);
+  ctx.font='11px Inter,sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.45)';
+  ctx.fillText('whole 7-DoF action chunk refined in parallel — '+steps+' denoising step'+(steps!==1?'s':''),W/2,H-12);
+}
+const piTerms=[
+ ['π0 (pi-zero)','Physical Intelligence\'s first generalist VLA (2024): a ~3B VLM backbone (PaliGemma-class) + a flow-matching action head, trained cross-embodiment. Continuous actions at up to 50 Hz — the model that made flow-matching VLAs mainstream. Open-sourced as openpi.'],
+ ['Flow-matching action head','Instead of discretizing motor commands into tokens, the head learns a vector field that flows from noise to a continuous action chunk. Straight-path flow matching converges in ~1–10 steps (vs ~7+ sequential AR tokens) — the key to real-time rates.'],
+ ['Action expert','A separate, smaller set of weights that takes the partially-denoised action + VLM features and outputs the flow vector field. Decoupling it from the big LLM backbone is what keeps high-rate sampling cheap.'],
+ ['FAST tokenizer','A frequency-domain (DCT-based) action tokenizer giving ~10× compression over naive binning. π0.5 pretrains with FAST discrete tokens, then post-trains the flow-matching head — a hybrid of both.'],
+ ['π0.5','Adds open-world generalization via a hierarchical two-stage policy: predict a high-level textual subtask, then the low-level action. Trained on 10+ robot embodiments.'],
+ ['π0.6 / π0.7','π0.6 (Nov 2025) learns from its own experience (RL-style); π0.7 is a steerable foundation model with a step-change in generalization — the current frontier of the line.'],
+ ['openpi','Physical Intelligence\'s open-source release of the π models + training/inference code — the practical entry point for working with flow-matching VLAs.']
+];
+document.getElementById('pi-terms').innerHTML=piTerms.map(t=>'<div class="term-row" onclick="this.classList.toggle(\'open\')"><span class="term-code">'+t[0]+'</span><div class="term-detail">'+t[1]+'</div></div>').join('');
+setFlowMode('ar');
+</script>
+</body>
+</html>
