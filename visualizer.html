@@ -634,10 +634,13 @@ function drawChunking(){
   for(let row=0;row<6;row++){
     const y0=10+row*(H-20)/6,rowH=(H-20)/6-2;
     if(chunkMode==='single'){
+      // Single-step BC: errors COMPOUND. Every step drifts a little further off the
+      // demo distribution and can't be corrected, so the trajectory snowballs from
+      // green (on-distribution) to red (drifted) over time — the whole point of the demo.
       let drift=0;
       for(let t=0;t<STEPS;t++){
-        if(rng()<.08+drift*.15)drift=Math.min(drift+.2,1); else drift=Math.max(drift-.05,0);
-        ctx.fillStyle=drift>.4?'rgba(216,90,48,'+(0.4+drift*.4)+')':'rgba(93,202,165,'+(0.4+(1-drift)*.4)+')';
+        drift=Math.min(1, drift + 0.006 + rng()*0.03);
+        ctx.fillStyle=drift>.4?'rgba(216,90,48,'+(0.45+drift*.45)+')':'rgba(93,202,165,'+(0.45+(1-drift)*.4)+')';
         ctx.fillRect(10+t*(W-20)/STEPS,y0,(W-20)/STEPS-1,rowH);
       }
     } else {
